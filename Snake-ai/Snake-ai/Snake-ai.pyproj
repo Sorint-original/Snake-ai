@@ -22,6 +22,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="button.py" />
+    <Compile Include="Game.py" />
+    <Compile Include="map_class.py" />
     <Compile Include="Menu.py" />
     <Compile Include="Snake_ai.py" />
   </ItemGroup>
