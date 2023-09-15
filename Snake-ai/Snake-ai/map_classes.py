@@ -64,7 +64,6 @@ class map_class(object):
                 choice = [x,random.choice(ys)]
         if choice != None :
             self.tile_map[choice[0]][choice[1]] = [1,0]
-            print(choice)
             self.apple = choice
 
     def draw_everything(self,WIN) :
@@ -115,7 +114,11 @@ class map_class(object):
                     #GAME OVER 
                     self.kill_snake(1)
             elif self.tile_map[next_x][next_y][0] == 1 :
-                x=10
+                #If the snake eats an apple
+                self.first_snake.size +=1
+                self.first_snake.segments_pos.insert(0,[next_x,next_y])
+                self.tile_map[next_x][next_y] = [2,self.first_snake.size]
+                self.spawn_apple()
             else :
                 #Snake moves foward
                 for i in range(self.first_snake.size-1,0,-1) :
