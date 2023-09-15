@@ -29,10 +29,11 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
 
         #Move check
         speed_counter -=1
-        if speed_counter == 0:
+        if speed_counter <= 0:
             #move the snakes
             Map.update_move()
-            speed_counter = game_speed
+            if SCENARIO <= 1 :
+                speed_counter = game_speed - 0.25*(Map.first_snake.size/2)
         draw_window(WIN)
 
 
