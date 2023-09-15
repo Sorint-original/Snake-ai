@@ -107,12 +107,16 @@ class map_class(object):
 
             if next_x <0 or next_x >= self.size or next_y<0 or next_y >= self.size :
                 #GAME OVER from wall
+                score = self.first_snake.size - 3
                 self.kill_snake(1)
+                return "first_died",score
             elif self.tile_map[next_x][next_y][0] > 1  :
                 #possible Game over
                 if self.tile_map[next_x][next_y][0] == 2 and self.tile_map[next_x][next_y][1] != self.first_snake.size :
                     #GAME OVER 
+                    score = self.first_snake.size - 3
                     self.kill_snake(1)
+                    return "first_died", score
             elif self.tile_map[next_x][next_y][0] == 1 :
                 #If the snake eats an apple
                 self.first_snake.size +=1
@@ -134,6 +138,7 @@ class map_class(object):
             #End of first snake movement
             if self.first_snake != None :
                 self.first_snake.direction_changed = False
+        return "nothing", None
             
 
 

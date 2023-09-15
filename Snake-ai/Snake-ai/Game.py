@@ -3,6 +3,7 @@ import os
 
 import map_classes
 from map_classes import tile_pixel, map_border,deafoult_size
+import game_over
 
 
 def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
@@ -22,6 +23,7 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
     #moves every twenty frames
     game_speed = 15
     speed_counter = game_speed
+    Status = None
 
     clock = pygame.time.Clock()
     while run :
@@ -31,8 +33,12 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
         speed_counter -=1
         if speed_counter <= 0:
             #move the snakes
-            Map.update_move()
-            if SCENARIO <= 1 :
+            Status, score = Map.update_move()
+            if Status == "first_died" :
+                run = False 
+                #Enter in game over part
+                game_over.gover(WIN,WIDTH,HEIGHT,SCENARIO,score)
+            elif SCENARIO <= 1 :
                 speed_counter = game_speed - 0.25*(Map.first_snake.size/2)
         draw_window(WIN)
 

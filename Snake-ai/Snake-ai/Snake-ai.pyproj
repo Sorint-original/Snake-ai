@@ -23,6 +23,7 @@
   <ItemGroup>
     <Compile Include="button.py" />
     <Compile Include="Game.py" />
+    <Compile Include="game_over.py" />
     <Compile Include="map_classes.py" />
     <Compile Include="Menu.py" />
     <Compile Include="Snake_ai.py" />
