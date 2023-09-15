@@ -34,12 +34,21 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
         if speed_counter <= 0:
             #move the snakes
             Status, score = Map.update_move()
-            if Status == "first_died" :
+            if Status == "first_died" or Status == "second_died" :
                 run = False 
                 #Enter in game over part
-                game_over.gover(WIN,WIDTH,HEIGHT,SCENARIO,score)
-            elif SCENARIO <= 1 :
+                if SCENARIO == 0 :
+                    game_over.gover(WIN,WIDTH,HEIGHT,SCENARIO,Status,score,None)
+                elif SCENARIO == 1 :
+                    if Status == "first_died" :
+                        other_score = Map.second_snake.size - 3
+                    else :
+                        other_score = Map.first_snake.size - 3
+                    game_over.gover(WIN,WIDTH,HEIGHT,SCENARIO,Status,score,other_score)
+            elif SCENARIO == 0 :
                 speed_counter = game_speed - 0.25*(Map.first_snake.size/2)
+            elif SCENARIO == 1 :
+                speed_counter = game_speed - 0.125*(Map.first_snake.size+ Map.second_snake.size)
         draw_window(WIN)
 
 
@@ -51,6 +60,7 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
             if event.type == pygame.KEYDOWN :
                 if event.key == pygame.K_ESCAPE :
                     run = False
+                #First snake manual movements
                 if Map.first_snake != None and Map.first_snake.direction_changed == False :
                     if event.key == pygame.K_w and Map.first_snake.direction %2 == 0 :
                         Map.first_snake.direction = 1
@@ -64,5 +74,19 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
                     elif event.key == pygame.K_d and Map.first_snake.direction %2 == 1  :
                         Map.first_snake.direction = 4
                         Map.first_snake.direction_changed = True
+                #Second snake manual movements
+                if Map.second_snake != None and Map.second_snake.direction_changed == False :
+                    if event.key == pygame.K_UP and Map.second_snake.direction %2 == 0 :
+                        Map.second_snake.direction = 1
+                        Map.second_snake.direction_changed = True
+                    elif event.key == pygame.K_DOWN and Map.second_snake.direction %2 == 0  :
+                        Map.second_snake.direction = 3
+                        Map.second_snake.direction_changed = True
+                    elif event.key == pygame.K_LEFT and Map.second_snake.direction %2 == 1 :
+                        Map.second_snake.direction = 2
+                        Map.second_snake.direction_changed = True
+                    elif event.key == pygame.K_RIGHT and Map.second_snake.direction %2 == 1  :
+                        Map.second_snake.direction = 4
+                        Map.second_snake.direction_changed = True
 
 

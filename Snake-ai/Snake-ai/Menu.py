@@ -13,9 +13,11 @@ def menu(WIN,WIDTH,HEIGHT,FPS):
     #the declaration of the buttons that are in the menu\
     FontButton = pygame.font.Font(None,30)
     Buttons = []
-    B = button.Button((WIDTH/2-150,HEIGHT*2/5,250,75),(230,230,230),None,**{"text":"Play","font":FontButton})
+    B = button.Button((WIDTH/2-150,HEIGHT*2/5,250,75),(230,230,230),None,**{"text":"SinglePlay","font":FontButton})
     Buttons.append(B)
-    B = button.Button((WIDTH/2-150,HEIGHT*2/5+75*2,250,75),(230,230,230),None,**{"text":"Quit","font":FontButton})
+    B = button.Button((WIDTH/2-150,HEIGHT*2/5+75*2,250,75),(230,230,230),None,**{"text":"Play 1v1","font":FontButton})
+    Buttons.append(B)
+    B = button.Button((WIDTH/2-150,HEIGHT*2/5+75*4,250,75),(230,230,230),None,**{"text":"Quit","font":FontButton})
     Buttons.append(B)
 
     def draw_window(WIN) :
@@ -38,9 +40,9 @@ def menu(WIN,WIDTH,HEIGHT,FPS):
             elif event.type == pygame.MOUSEBUTTONDOWN :
                 for i in range(len(Buttons)) :
                     if Buttons[i].on_click(event) :
-                        if i == 1 :
+                        if i == 2 :
                             pygame.quit()
                             os._exit(0)
-                        elif i == 0 :
-                            Game.game(WIN,WIDTH,HEIGHT,FPS,0)
+                        else :
+                            Game.game(WIN,WIDTH,HEIGHT,FPS,i)
 
