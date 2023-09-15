@@ -20,7 +20,7 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
         pygame.display.update()
 
     #moves every twenty frames
-    game_speed = 20
+    game_speed = 15
     speed_counter = game_speed
 
     clock = pygame.time.Clock()
@@ -44,4 +44,18 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
             if event.type == pygame.KEYDOWN :
                 if event.key == pygame.K_ESCAPE :
                     run = False
+                if Map.first_snake != None and Map.first_snake.direction_changed == False :
+                    if event.key == pygame.K_w and Map.first_snake.direction %2 == 0 :
+                        Map.first_snake.direction = 1
+                        Map.first_snake.direction_changed = True
+                    elif event.key == pygame.K_s and Map.first_snake.direction %2 == 0  :
+                        Map.first_snake.direction = 3
+                        Map.first_snake.direction_changed = True
+                    elif event.key == pygame.K_a and Map.first_snake.direction %2 == 1 :
+                        Map.first_snake.direction = 2
+                        Map.first_snake.direction_changed = True
+                    elif event.key == pygame.K_d and Map.first_snake.direction %2 == 1  :
+                        Map.first_snake.direction = 4
+                        Map.first_snake.direction_changed = True
+
 

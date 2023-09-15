@@ -12,6 +12,7 @@ class snake_class(object):
         self.size = 3
         self.control = control 
         self.segments_pos = []
+        self.direction_changed = False
         if control == 0 :
             self.direction = 3
             self.segments_pos.append((0,2))
@@ -127,6 +128,9 @@ class map_class(object):
                 #append the new head
                 self.first_snake.segments_pos.insert(0,[next_x,next_y])
                 self.tile_map[next_x][next_y] = [2,self.first_snake.size]
+            #End of first snake movement
+            if self.first_snake != None :
+                self.first_snake.direction_changed = False
             
 
 
