@@ -24,9 +24,12 @@ def menu(WIN,WIDTH,HEIGHT,FPS):
             butt.update(WIN)
         pygame.display.update()
         
-    while run :
-        draw_window(WIN)
 
+    clock = pygame.time.Clock()
+    while run :
+        clock.tick(FPS)
+
+        draw_window(WIN)
 
         for event in pygame.event.get() :
             if event.type == pygame.QUIT :
