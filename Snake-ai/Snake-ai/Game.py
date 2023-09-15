@@ -11,7 +11,7 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
     run = True
 
     #DECLARATION OF TE MAP
-    #map segment dimensions border = 5 , tile_pixelx map_size + map_size+1 
+    
     Map = map_class.map_class(15)
     map_segment_size = map_border*2 + tile_pixel*Map.size + Map.size +1
 
