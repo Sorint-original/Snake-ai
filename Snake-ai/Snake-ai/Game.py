@@ -1,12 +1,21 @@
 import pygame
 import os
 
+import map_class
+
+
+tile_pixel = 10
 
 def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
     run = True
 
+    #DECLARATION OF TE MAP
+    Map = map_class.map_class(15)
+
+    WIN.fill((50,50,50))
+    pygame.draw.rect(WIN)
     def draw_window(WIN) :
-        WIN.fill((50,50,50))
+
         pygame.display.update()
 
     while run :
