@@ -4,16 +4,20 @@ import os
 import map_class
 
 
-tile_pixel = 10
+tile_pixel = 50
+map_border = 5
 
 def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
     run = True
 
     #DECLARATION OF TE MAP
+    #map segment dimensions border = 5 , tile_pixelx map_size + map_size+1 
     Map = map_class.map_class(15)
+    map_segment_size = map_border*2 + tile_pixel*Map.size + Map.size +1
 
     WIN.fill((50,50,50))
-    pygame.draw.rect(WIN)
+    pygame.draw.rect(WIN,(50,200,50),pygame.Rect(WIDTH/2-map_segment_size/2,HEIGHT/2-map_segment_size/2,map_segment_size,map_segment_size))
+    pygame.draw.rect(WIN,(0,0,0),pygame.Rect(WIDTH/2-map_segment_size/2 + map_border,HEIGHT/2-map_segment_size/2+map_border,map_segment_size-2*map_border,map_segment_size-2*map_border))
     def draw_window(WIN) :
 
         pygame.display.update()
