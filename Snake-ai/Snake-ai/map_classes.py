@@ -149,6 +149,18 @@ class map_class(object):
                 score = self.first_snake.size - 3
                 self.kill_snake(1)
                 return "first_died",score
+            elif self.tile_map[next_x][next_y][0] == 0 or (self.tile_map[next_x][next_y][0] == 2 and self.tile_map[next_x][next_y][1] == 1) :
+                #Snake moves foward
+                for i in range(self.first_snake.size-1,-1,-1) :
+                    segment = self.first_snake.segments_pos[i]
+                    if i == self.first_snake.size-1 :
+                        self.tile_map[segment[0]][segment[1]] = [0,0]
+                        self.first_snake.segments_pos.remove(segment)
+                    else :
+                        self.tile_map[segment[0]][segment[1]][1] -= 1
+                #append the new head
+                self.first_snake.segments_pos.insert(0,[next_x,next_y])
+                self.tile_map[next_x][next_y] = [2,self.first_snake.size]
             elif self.tile_map[next_x][next_y][0] > 1  :
                 #possible Game over
                 if self.tile_map[next_x][next_y][0] == 2 and self.tile_map[next_x][next_y][1] != 1 :
@@ -167,18 +179,6 @@ class map_class(object):
                 self.first_snake.segments_pos.insert(0,[next_x,next_y])
                 self.tile_map[next_x][next_y] = [2,self.first_snake.size]
                 self.spawn_apple()
-            else :
-                #Snake moves foward
-                for i in range(self.first_snake.size-1,0,-1) :
-                    segment = self.first_snake.segments_pos[i]
-                    if i == self.first_snake.size-1 :
-                        self.tile_map[segment[0]][segment[1]] = [0,0]
-                        self.first_snake.segments_pos.remove(segment)
-                    else :
-                        self.tile_map[segment[0]][segment[1]][1] -= i
-                #append the new head
-                self.first_snake.segments_pos.insert(0,[next_x,next_y])
-                self.tile_map[next_x][next_y] = [2,self.first_snake.size]
             #End of first snake movement
             if self.first_snake != None :
                 self.first_snake.direction_changed = False
@@ -197,6 +197,18 @@ class map_class(object):
                 score = self.second_snake.size - 3
                 self.kill_snake(2)
                 return "second_died",score
+            elif self.tile_map[next_x][next_y][0] == 0 or (self.tile_map[next_x][next_y][0] == 3 and self.tile_map[next_x][next_y][1] == 1) :
+                #Snake moves foward
+                for i in range(self.second_snake.size-1,-1,-1) :
+                    segment = self.second_snake.segments_pos[i]
+                    if i == self.second_snake.size-1 :
+                        self.tile_map[segment[0]][segment[1]] = [0,0]
+                        self.second_snake.segments_pos.remove(segment)
+                    else :
+                        self.tile_map[segment[0]][segment[1]][1] -= 1
+                #append the new head
+                self.second_snake.segments_pos.insert(0,[next_x,next_y])
+                self.tile_map[next_x][next_y] = [3,self.second_snake.size]
             elif self.tile_map[next_x][next_y][0] > 1  :
                 #possible Game over
                 if self.tile_map[next_x][next_y][0] == 3 and self.tile_map[next_x][next_y][1] != 1 :
@@ -215,18 +227,6 @@ class map_class(object):
                 self.second_snake.segments_pos.insert(0,[next_x,next_y])
                 self.tile_map[next_x][next_y] = [3,self.second_snake.size]
                 self.spawn_apple()
-            else :
-                #Snake moves foward
-                for i in range(self.second_snake.size-1,0,-1) :
-                    segment = self.second_snake.segments_pos[i]
-                    if i == self.second_snake.size-1 :
-                        self.tile_map[segment[0]][segment[1]] = [0,0]
-                        self.second_snake.segments_pos.remove(segment)
-                    else :
-                        self.tile_map[segment[0]][segment[1]][1] -= i
-                #append the new head
-                self.second_snake.segments_pos.insert(0,[next_x,next_y])
-                self.tile_map[next_x][next_y] = [3,self.second_snake.size]
             #End of first snake movement
             if self.second_snake != None :
                 self.second_snake.direction_changed = False
