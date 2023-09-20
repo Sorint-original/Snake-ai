@@ -1,51 +1,57 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Embedding, Reshape, Flatten,Input, InputLayer
 from tensorflow.keras.optimizers import Adam
+
+
 from collections import deque
 import numpy as np
 import random
+import matplotlib
+import matplotlib.pyplot as plt
 
 
 class DQN_Agent:
     def __init__(self, optimizer,observation_space,action_space,trained_model = None):
         
-        # Initialize atributes
+        # Initialize base statistics
         self._state_size = observation_space
         self._action_size = action_space
         self._optimizer = optimizer
         
         self.expirience_replay = deque(maxlen=2000)
         
-        # Initialize discount and exploration rate
+        # Initialize discount 
         self.gamma = 0.6
         
-        # Build networks
+        # Build main network and the target network
         self.q_network = self._build_compile_model()
         self.target_network = self._build_compile_model()
         self.alighn_target_model()
-
+    #The function that stores past expiriences
     def store(self, state, action, reward, next_state, terminated):
         self.expirience_replay.append((state, action, reward, next_state, terminated))
     
+    #Buld the neural network
     def _build_compile_model(self):
         model =  Sequential()
         model.add(Input(shape=(4,)))
-        model.add(Dense(24,activation = "relu"))
-        model.add(Dense(24,activation = "relu"))
+        model.add(Dense(32,activation = "relu"))
+        model.add(Dense(32,activation = "relu"))
         model.add(Dense(self._action_size,activation = "linear"))
         model.compile(loss='mse', optimizer=self._optimizer)
         return model
-
+    #Alighn the target network with the main network
     def alighn_target_model(self):
         self.target_network.set_weights(self.q_network.get_weights())
     
+    #Get the action
     def act(self, state):
         q_values = self.q_network.predict(state,verbose=0)
         return np.argmax(q_values[0])
-
+    #The ratraining 
     def retrain(self, batch_size):
+        # Get variables from random expiriences and form a batch
         minibatch_indx = np.random.permutation(len(self.expirience_replay))[: batch_size]
-        #print(states)
         states      = np.concatenate([np.reshape(self.expirience_replay[i][0],(1,4)) for i in minibatch_indx], axis=0)
         actions     = np.concatenate([np.reshape(self.expirience_replay[i][1],(1)) for i in minibatch_indx], axis=0)
         rewards     = np.concatenate([np.reshape(self.expirience_replay[i][2],(1)) for i in minibatch_indx], axis=0)
@@ -72,6 +78,20 @@ class DQN_Agent:
                 Y_batch = np.append(Y_batch, np.array([[rewards[idx]] * self._action_size]), axis=0)
 
         self.q_network.fit(X_batch, Y_batch, batch_size=len(X_batch), epochs=1, verbose=0)
+        
+
+    def save_model(self,iterations,score_log,epsilon_log, filename):
+        #Save model
+        self.q_network.save(filename+".keras")
+        #Save graphs
+        plt.plot(iterations, score_log, label = "Score")
+        plt.plot(iterations, epsilon_log, label = "Randomization")
+        plt.ylabel('Average Return/Randomization factor')
+        plt.xlabel('Iterations')
+        plt.ylim(top=250)
+        plt.legend()
+        plt.savefig(filename+".png")
+        
 
 
 

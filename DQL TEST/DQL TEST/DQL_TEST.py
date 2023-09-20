@@ -1,12 +1,12 @@
 import random
 import gym
 import numpy as np
+import os
 
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Flatten
 from tensorflow.keras.optimizers import Adam
-
 
 from DQN_AGENT import DQN_Agent
 
@@ -20,7 +20,7 @@ optimizer = Adam(learning_rate=0.01)
 
 agent = DQN_Agent(optimizer,states,actions)
 
-batch_size = 64
+batch_size = 32
 num_of_episodes = 1000
 timesteps_per_episode = 200
 episodes_between_training = 1
@@ -28,9 +28,10 @@ episodes_between_alignment = 100
 alignment_count = episodes_between_alignment
 
 epsilon = 1
-epsilon_decay = 0.995
+epsilon_decay = 0.997
 epsilon_min = 0.001
-
+Scores_log = []
+Epsilon_log = []
 #Training loop
 for e in range(1, num_of_episodes+1):
     # Reset the enviroment
@@ -63,13 +64,32 @@ for e in range(1, num_of_episodes+1):
         
     
     print(f"Episode {e}, Score: {score}")
+    Scores_log.append(score);
+    Epsilon_log.append(epsilon*200)
     #Modify epsilon
     epsilon =  max(epsilon*epsilon_decay,epsilon_min)
 
 
     if alignment_count <= 0 : 
         agent.alighn_target_model()
-    
+
+#saveing Neural Network model
+directory = "Saved models/DQN/"
+
+count = 0
+for path in os.listdir(directory):
+    # check if current path is a file
+    if os.path.isdir(os.path.join(directory, path)):
+        count += 1
+        
+Name = "DQN_NeNe_V" + str(count)
+aux_directory =  directory +Name
+os.mkdir(aux_directory)
+aux_directory = aux_directory + "/"+ Name
+iterations = range(1, num_of_episodes+1, 1)
+agent.save_model(iterations,Scores_log,Epsilon_log,aux_directory)
+
+
 #visualization loop
 
 for episode in range(1, 11) :
@@ -119,23 +139,3 @@ env.close()
 
 
 
-#Without deep learning version
-"""
-
-episodes = 10
-for episode in range(1, episodes + 1) :
-    state = env.reset()
-    done = False
-    score = 0
-    
-    while not done :
-        action = random.choice([0,1])
-        _, reward,done,_ = env.step(action)
-        score += reward
-        env.render()
-        
-    print(f"Episode {episode}, Score: {score}")
-    
-env.close()
-
-"""
