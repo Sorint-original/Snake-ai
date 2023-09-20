@@ -1,7 +1,6 @@
 import random
 import gym
 import numpy as np
-import progressbar
 
 
 from tensorflow.keras.models import Sequential
@@ -16,62 +15,79 @@ env = gym.make("CartPole-v1")
 states = env.observation_space.shape[0]
 actions = env.action_space.n
 
-#the structure of the neural network
-model =  Sequential()
-model.add(Flatten(input_shape=(1,states)))
-model.add(Dense(24,activation = "relu"))
-model.add(Dense(24,activation = "relu"))
-model.add(Dense(actions,activation = "linear"))
-
 optimizer = Adam(learning_rate=0.01)
 
 
 agent = DQN_Agent(optimizer,states,actions)
 
-batch_size = 32
-num_of_episodes = 100
-timesteps_per_episode = 1000
+batch_size = 64
+num_of_episodes = 1000
+timesteps_per_episode = 200
+episodes_between_training = 1
+episodes_between_alignment = 100
+alignment_count = episodes_between_alignment
+
+epsilon = 1
+epsilon_decay = 0.995
+epsilon_min = 0.001
 
 #Training loop
-for e in range(0, num_of_episodes):
+for e in range(1, num_of_episodes+1):
     # Reset the enviroment
     state = env.reset()
-    
+    state = np.reshape(state,(1,4))
+    score = 0
     # Initialize variables
-    reward = 0
     terminated = False
-    
-    bar = progressbar.ProgressBar(maxval=timesteps_per_episode/10, widgets=\
-                                  [progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
-    bar.start()
+    alignment_count -= 1
     
     for timestep in range(timesteps_per_episode):
-        # Run Action
-        action = agent.act(state,env)
         
         # Take action    
+        if np.random.rand() <= epsilon:
+            action = env.action_space.sample()
+        else :
+            action = agent.act(state)
         next_state, reward, terminated, info = env.step(action) 
+        score += reward
         agent.store(state, action, reward, next_state, terminated)
         
         state = next_state
+        state = np.reshape(state,(1,4))
         
         if terminated:
-            agent.alighn_target_model()
             break
             
-        if len(agent.expirience_replay) > batch_size:
-            agent.retrain(batch_size)
+    if len(agent.expirience_replay) > batch_size and e% episodes_between_training == 0:
+        agent.retrain(batch_size)
         
-        if timestep%10 == 0:
-            bar.update(timestep/10 + 1)
     
-    bar.finish()
-    if (e + 1) % 10 == 0:
-        print("**********************************")
-        print("Episode: {}".format(e + 1))
-        env.render()
-        print("**********************************")
+    print(f"Episode {e}, Score: {score}")
+    #Modify epsilon
+    epsilon =  max(epsilon*epsilon_decay,epsilon_min)
 
+
+    if alignment_count <= 0 : 
+        agent.alighn_target_model()
+    
+#visualization loop
+
+for episode in range(1, 11) :
+    state = env.reset()
+    state = np.reshape(state,(1,4))
+    done = False
+    score = 0
+    
+    while not done :
+        action = agent.act(state)
+        state, reward,done,_ = env.step(action)
+        state = np.reshape(state,(1,4))
+        score += reward
+        env.render()
+        
+    print(f"Episode {episode}, Score: {score}")
+    
+env.close()
 #Old version of tensorflow 2.10
 '''
 #the structure of the neural network
