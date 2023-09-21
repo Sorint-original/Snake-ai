@@ -77,16 +77,25 @@ class DQN_Agent:
                 X_batch = np.append(X_batch, np.reshape(np.copy(next_states[idx]), (1, self._state_size)), axis=0)
                 Y_batch = np.append(Y_batch, np.array([[rewards[idx]] * self._action_size]), axis=0)
 
-        self.q_network.fit(X_batch, Y_batch, batch_size=len(X_batch), epochs=1, verbose=0)
+        self.q_network.fit(X_batch, Y_batch, batch_size=len(X_batch), epochs=5, verbose=0)
         
 
     def save_model(self,iterations,score_log,epsilon_log, filename):
         #Save model
         self.q_network.save(filename+".keras")
         #Save graphs
-        plt.plot(iterations, score_log, label = "Score")
-        plt.plot(iterations, epsilon_log, label = "Randomization")
-        plt.ylabel('Average Return/Randomization factor')
+        plt.plot(iterations, epsilon_log, label = "Randomization", color = 'green')
+        plt.plot(iterations, score_log, label = "Score", color = 'tab:blue')
+        #calculate average
+        average = []
+        for i in range(24,len(score_log)):
+            recent_score_sum = 0
+            for j in range(i-24,i+1) :
+                recent_score_sum += score_log[j]
+            average.append(recent_score_sum/25)
+        iterations = range(25, len(epsilon_log)+1, 1)
+        plt.plot(iterations, average, label = "Score Average",color = 'tab:orange')
+        plt.ylabel('Return/Randomization factor')
         plt.xlabel('Iterations')
         plt.ylim(top=250)
         plt.legend()

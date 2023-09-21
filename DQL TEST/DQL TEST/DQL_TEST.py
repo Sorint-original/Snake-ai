@@ -3,9 +3,6 @@ import gym
 import numpy as np
 import os
 
-
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten
 from tensorflow.keras.optimizers import Adam
 
 from DQN_AGENT import DQN_Agent
@@ -28,7 +25,7 @@ episodes_between_alignment = 100
 alignment_count = episodes_between_alignment
 
 epsilon = 1
-epsilon_decay = 0.997
+epsilon_decay = 0.995
 epsilon_min = 0.001
 Scores_log = []
 Epsilon_log = []

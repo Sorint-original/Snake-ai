@@ -1,0 +1,1 @@
+0.995 epsilon gave more consistent results than the models trained with 0.998 and 0.997
