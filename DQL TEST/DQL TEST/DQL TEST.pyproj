@@ -12,6 +12,7 @@
     <Name>DQL TEST</Name>
     <RootNamespace>DQL TEST</RootNamespace>
     <InterpreterId>Global|VisualStudio|Python39_64</InterpreterId>
+    <TestFramework>Pytest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>

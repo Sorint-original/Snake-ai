@@ -1,13 +1,16 @@
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Embedding, Reshape, Flatten,Input, InputLayer
+
 from tensorflow.keras.optimizers import Adam
 
+import torch.nn as nn
 
 from collections import deque
 import numpy as np
 import random
 import matplotlib
 import matplotlib.pyplot as plt
+import gc
+
+from memory_profiler import profile  
 
 
 class DQN_Agent:
@@ -33,6 +36,17 @@ class DQN_Agent:
     
     #Buld the neural network
     def _build_compile_model(self):
+        model = nn.Sequential(
+            nn.Linear(self._state_size,32),
+            nn.ReLU(),
+            nn.Linear(32,32),
+            nn.ReLU(),
+            nn.Linear(32,32),
+            nn.ReLU(),
+            nn.Linear(32,self._action_size)
+            )
+        return model
+        '''
         model =  Sequential()
         model.add(Input(shape=(4,)))
         model.add(Dense(32,activation = "relu"))
@@ -40,6 +54,7 @@ class DQN_Agent:
         model.add(Dense(self._action_size,activation = "linear"))
         model.compile(loss='mse', optimizer=self._optimizer)
         return model
+        '''    
     #Alighn the target network with the main network
     def alighn_target_model(self):
         self.target_network.set_weights(self.q_network.get_weights())
@@ -47,6 +62,7 @@ class DQN_Agent:
     #Get the action
     def act(self, state):
         q_values = self.q_network.predict(state,verbose=0)
+        _ = gc.collect()
         return np.argmax(q_values[0])
     #The ratraining 
     def retrain(self, batch_size):
@@ -62,8 +78,9 @@ class DQN_Agent:
         Y_batch = np.zeros((batch_size, self._action_size), dtype=np.float64)
         
         qValues_batch = self.q_network.predict(states, verbose=0)
+        _ = gc.collect()
         qValuesNewState_batch = self.target_network.predict(next_states,verbose=0)
-
+        _ = gc.collect()
         targetValue_batch = np.copy(rewards)
         targetValue_batch += (1 - dones) * self.gamma * np.amax(qValuesNewState_batch, axis=1)
         
@@ -77,7 +94,7 @@ class DQN_Agent:
                 X_batch = np.append(X_batch, np.reshape(np.copy(next_states[idx]), (1, self._state_size)), axis=0)
                 Y_batch = np.append(Y_batch, np.array([[rewards[idx]] * self._action_size]), axis=0)
 
-        self.q_network.fit(X_batch, Y_batch, batch_size=len(X_batch), epochs=5, verbose=0)
+        self.q_network.fit(X_batch, Y_batch, batch_size=len(X_batch), epochs=1, verbose=0)
         
 
     def save_model(self,iterations,score_log,epsilon_log, filename):
