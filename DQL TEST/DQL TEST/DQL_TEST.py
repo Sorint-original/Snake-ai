@@ -14,6 +14,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 
+
 env = gym.make("CartPole-v1")
 states = env.observation_space.shape[0]
 actions = env.action_space.n

@@ -11,7 +11,34 @@ import time
 
 from memory_profiler import profile  
 
-import Networks
+
+
+class Q_net(nn.Module):
+    def __init__(self,_state_size,_action_size) :
+        super(Q_net, self).__init__()
+        self.model = nn.Sequential(
+            nn.Linear(_state_size, 256),
+            nn.ReLU(),
+            nn.Linear(256, 256),
+            nn.ReLU(),
+            nn.Linear(256, 256),
+            nn.ReLU(),
+            nn.Linear(256, 256),
+            nn.ReLU(),
+            nn.Linear(256,_action_size)
+            )
+        
+    def forward(self, x):
+        return self.model(x)
+
+
+
+
+
+
+
+
+
 
 
 Expirience = namedtuple('Expirience',('state', 'action', 'next_state', 'reward'))
@@ -33,8 +60,8 @@ class DQN_Agent:
         self.gamma = gamma
         
         # Build main network and the target network
-        self.q_network = Networks.Model1(self._state_size,self._action_size).to(device)
-        self.target_network = Networks.Model1(self._state_size,self._action_size).to(device)
+        self.q_network = Q_net(self._state_size,self._action_size).to(device)
+        self.target_network = Q_net(self._state_size,self._action_size).to(device)
         self.target_network.load_state_dict(self.q_network.state_dict())
         
         self._optimizer = optim.Adam(self.q_network.parameters(),lr = learning_rate)
