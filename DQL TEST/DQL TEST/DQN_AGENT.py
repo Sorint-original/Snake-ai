@@ -32,15 +32,6 @@ class Q_net(nn.Module):
         return self.model(x)
 
 
-
-
-
-
-
-
-
-
-
 Expirience = namedtuple('Expirience',('state', 'action', 'next_state', 'reward'))
 
 class DQN_Agent:
@@ -58,6 +49,7 @@ class DQN_Agent:
         
         # Initialize discount 
         self.gamma = gamma
+        self.criterion = nn.SmoothL1Loss()
         
         # Build main network and the target network
         self.q_network = Q_net(self._state_size,self._action_size).to(device)
@@ -104,9 +96,8 @@ class DQN_Agent:
             reward_batch = torch.cat(batch.reward)
 
             batch_index = np.arange(batch_size,dtype = np.int32)
+            
             #the values taken by the network
-
-            #state_action_values = self.q_network(state_batch).gather(1, action_batch)
             state_action_values =  self.q_network(state_batch).gather(1,action_batch)
 
             next_state_values = torch.zeros(batch_size,device=self.device)
@@ -117,8 +108,7 @@ class DQN_Agent:
 
             expected_state_action_values = (next_state_values * self.gamma) + reward_batch
             #Compute loss
-            criterion = nn.SmoothL1Loss()
-            loss = criterion( expected_state_action_values.unsqueeze(1),state_action_values)
+            loss = self.criterion( expected_state_action_values.unsqueeze(1),state_action_values)
             loss.backward()
             self._optimizer.step()
             torch.nn.utils.clip_grad_value_(self.q_network.parameters(), 100)
@@ -146,7 +136,7 @@ class DQN_Agent:
         plt.plot(iterations, average, label = "Score Average",color = 'tab:orange')
         plt.ylabel('Return/Randomization factor')
         plt.xlabel('Iterations')
-        plt.ylim(top=250)
+        plt.ylim(top=550)
         plt.legend()
         plt.savefig(filename+".png")
         

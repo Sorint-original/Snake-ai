@@ -25,7 +25,7 @@ agent = DQN_Agent(states,actions,Learning_rate,Gamma,device)
 
 batch_size = 256
 num_of_episodes = 1000
-timesteps_per_episode = 200
+timesteps_per_episode = 500
   
 
 epsilon = 1
