@@ -9,6 +9,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import time
 
+from memory_replay import Memory
+
 from memory_profiler import profile  
 
 

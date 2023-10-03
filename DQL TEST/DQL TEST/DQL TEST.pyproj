@@ -23,7 +23,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="SumTree.py" />
+    <Compile Include="memory_replay.py" />
     <Compile Include="DQL_TEST.py" />
     <Compile Include="DQN_AGENT.py" />
   </ItemGroup>
