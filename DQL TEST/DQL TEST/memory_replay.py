@@ -11,6 +11,7 @@ class sumtree(object):
         self.tree = np.zeros(2*capacity -1)
         self.data = np.zeros(capacity,dtype=object)
 
+    #add new expierience with a set priority
     def add(self,priority,data) :
         tree_index = self.data_pointer + self.capacity - 1
         
@@ -26,6 +27,7 @@ class sumtree(object):
             self.data_pointer = 0   
             self.one_loop += 1
 
+    #update the binary tree on all levels
     def update(self, tree_index, priority):
         # Change = new priority score - former priority score
         change = priority - self.tree[tree_index]
@@ -38,7 +40,7 @@ class sumtree(object):
             self.tree[tree_index] += change
 
     
-    def get_leaf(self, v):
+    def get_leaf(self, value):
         parent_index = 0
 
         while True:
@@ -50,10 +52,10 @@ class sumtree(object):
                 leaf_index = parent_index
                 break
             else: # downward search, always search for a higher priority node
-                if v <= self.tree[left_child_index]:
+                if value <= self.tree[left_child_index]:
                     parent_index = left_child_index
                 else:
-                    v -= self.tree[left_child_index]
+                    value -= self.tree[left_child_index]
                     parent_index = right_child_index
 
         data_index = leaf_index - self.capacity + 1
@@ -78,7 +80,8 @@ class Memory(object):  # stored as ( state, action, reward, next_state ) in SumT
     def __init__(self, capacity):
         # Making the tree 
         self.tree = sumtree(capacity)
-        
+    
+    #Save a specific expirience with max priority or error_set_priority
     def store(self, experience):
         # Find the max priority
         max_priority = np.max(self.tree.tree[-self.tree.capacity:])
@@ -89,18 +92,18 @@ class Memory(object):  # stored as ( state, action, reward, next_state ) in SumT
             max_priority = self.absolute_error_upper
 
         self.tree.add(max_priority, experience)   # set the max priority for new priority
-        
-    def sample(self, n):
+     
+    def sample(self, batch_size):
         # Create a minibatch array that will contains the minibatch
         minibatch = []
 
-        b_idx = np.empty((n,), dtype=np.int32)
+        b_idx = np.empty((batch_size,), dtype=np.int32)
 
         # Calculate the priority segment
         # Here, as explained in the paper, we divide the Range[0, ptotal] into n ranges
-        priority_segment = self.tree.total_priority / n       # priority segment
+        priority_segment = self.tree.total_priority / batch_size       # priority segment
 
-        for i in range(n):
+        for i in range(batch_size):
             # A value is uniformly sample from each range
             a, b = priority_segment * i, priority_segment * (i + 1)
             value = np.random.uniform(a, b)
