@@ -47,7 +47,7 @@ class DQN_Agent:
         self. network_sync_counter = 0
         self.network_sync_freq = 10
         
-        self.expirience_replay = deque(maxlen=10000)
+        self.expirience_replay = Memory(10000)
         
         # Initialize discount 
         self.gamma = gamma
@@ -64,7 +64,7 @@ class DQN_Agent:
     def store(self, state, action, reward, next_state, terminated):
         if terminated == True :
             next_state = None
-        self.expirience_replay.append(Expirience(state,action,next_state,reward))
+        self.expirience_replay.store(Expirience(state,action,next_state,reward))
     
     #Get the action
     def act(self, state):
@@ -76,7 +76,7 @@ class DQN_Agent:
     
     #The ratraining 
     def retrain(self, batch_size):
-        if len(self.expirience_replay) > batch_size :
+        if self.expirience_replay.tree.data_pointer > batch_size or self.expirience_replay.tree.one_loop >=1 :
             #align models
             self.network_sync_counter += 1  
             if(self.network_sync_counter == self.network_sync_freq):
@@ -87,7 +87,7 @@ class DQN_Agent:
             self.q_network.train()
             self.target_network.eval()
             # Get variables from random expiriences and form a batch
-            expiriences = random.sample(self.expirience_replay,batch_size)
+            leaf_index,expiriences = self.expirience_replay.sample(batch_size)
             batch = Expirience(*zip(*expiriences))
 
             non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,batch.next_state)), device=self.device, dtype=torch.bool)
@@ -109,6 +109,12 @@ class DQN_Agent:
 
 
             expected_state_action_values = (next_state_values * self.gamma) + reward_batch
+
+            indices = np.arange(batch_size, dtype=np.int32)
+            errors = torch.abs(state_action_values.squeeze(1) - expected_state_action_values)
+            # Update priority
+            self.expirience_replay.batch_update(leaf_index, errors)
+            
             #Compute loss
             loss = self.criterion( expected_state_action_values.unsqueeze(1),state_action_values)
             loss.backward()

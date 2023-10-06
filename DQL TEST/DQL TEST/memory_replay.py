@@ -1,5 +1,5 @@
 import numpy as np
-
+import time
 
 class sumtree(object):
     data_pointer = 0
@@ -62,9 +62,6 @@ class sumtree(object):
 
         return leaf_index, self.tree[leaf_index], self.data[data_index]
 
-        @property
-        def total_priority(self):
-            return self.tree[0] # Returns the root node 
 
 
 
@@ -101,26 +98,25 @@ class Memory(object):  # stored as ( state, action, reward, next_state ) in SumT
 
         # Calculate the priority segment
         # Here, as explained in the paper, we divide the Range[0, ptotal] into n ranges
-        priority_segment = self.tree.total_priority / batch_size       # priority segment
-
+        priority_segment = self.tree.tree[0] / batch_size       # priority segment
         for i in range(batch_size):
             # A value is uniformly sample from each range
             a, b = priority_segment * i, priority_segment * (i + 1)
             value = np.random.uniform(a, b)
-
             # Experience that correspond to each value is retrieved
             index, priority, data = self.tree.get_leaf(value)
-
             b_idx[i]= index
 
-            minibatch.append([data[0],data[1],data[2],data[3],data[4]])
+            minibatch.append(data)
 
         return b_idx, minibatch
     
+
+
     def batch_update(self, tree_idx, abs_errors):
         abs_errors += self.PER_e  # convert to abs and avoid 0
+        abs_errors = abs_errors.detach()
         clipped_errors = np.minimum(abs_errors, self.absolute_error_upper)
         ps = np.power(clipped_errors, self.PER_a)
-
         for ti, p in zip(tree_idx, ps):
-            self.tree.update(ti, p)
+            self.tree.update(ti, p.item())
