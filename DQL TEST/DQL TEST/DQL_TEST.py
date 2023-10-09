@@ -64,8 +64,8 @@ for e in range(1, num_of_episodes+1):
     loss =agent.retrain(batch_size)
     print(f"Episode {e}, Score: {score}")
     Scores_log.append(score);
-    Epsilon_log.append(epsilon*200)
-    Loss_log.append(loss*200)
+    Epsilon_log.append(epsilon*500)
+    Loss_log.append(loss*500)
     #Modify epsilon
     epsilon =  max(epsilon*epsilon_decay,epsilon_min)
 

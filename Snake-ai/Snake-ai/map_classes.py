@@ -1,5 +1,6 @@
 import pygame
 import random
+import numpy as np
 
 pygame.init()
 
@@ -35,29 +36,33 @@ class map_class(object):
     def __init__ (self,size,SCENARIO,WIN) :
         self.size = size
         self.tile_map =[]
+        aux_matrix1 = []
+        aux_matrix2 = []
         #setup map tiles
         for i in range(size):
-            aux = []
+            aux1 = []
+            aux2 = []
             for j in range(size):
-                aux.append([0,0])
-            self.tile_map.append(aux)
+                aux1.append(0)
+                aux2.append(0)
+            aux_matrix1.append(aux1)
+            aux_matrix2.append(aux2)
+        self.tile_map = [aux_matrix1,aux_matrix2]
         #scenario managment
         self.first_snake = None
         self.second_snake = None
-        if SCENARIO == 0 :
+        if SCENARIO == 0 or SCENARIO == 1 :
             #spawn snake
             self.first_snake = snake_class(0)
             for i in range(len(self.first_snake.segments_pos)) :
-                self.tile_map[self.first_snake.segments_pos[i][0]][self.first_snake.segments_pos[i][1]] = [2,self.first_snake.size-i]
-        elif SCENARIO == 1 :
-            #spawn snakes
-            self.first_snake = snake_class(0)
-            for i in range(len(self.first_snake.segments_pos)) :
-                self.tile_map[self.first_snake.segments_pos[i][0]][self.first_snake.segments_pos[i][1]] = [2,self.first_snake.size-i]
+                self.tile_map[0][self.first_snake.segments_pos[i][0]][self.first_snake.segments_pos[i][1]] = 2
+                self.tile_map[1][self.first_snake.segments_pos[i][0]][self.first_snake.segments_pos[i][1]] = self.first_snake.size-i
+        if SCENARIO == 1 :
             #spawn second snake
             self.second_snake = snake_class(1)
             for i in range(len(self.second_snake.segments_pos)) :
-                self.tile_map[self.second_snake.segments_pos[i][0]][self.second_snake.segments_pos[i][1]] = [3,self.second_snake.size-i]
+                self.tile_map[0][self.second_snake.segments_pos[i][0]][self.second_snake.segments_pos[i][1]] = 3
+                self.tile_map[1][self.second_snake.segments_pos[i][0]][self.second_snake.segments_pos[i][1]] = self.second_snake.size-i
         #Spawn apple indferent of the scenario
         self.spawn_apple()
         self.draw_everything(WIN)
@@ -73,12 +78,13 @@ class map_class(object):
             xs.remove(x)
             ys = []
             for i in range(self.size):
-                if self.tile_map[x][i][0] == 0 :
+                if self.tile_map[0][x][i] == 0 :
                     ys.append(i)
             if len(ys) > 0 :
                 choice = [x,random.choice(ys)]
         if choice != None :
-            self.tile_map[choice[0]][choice[1]] = [1,0]
+            self.tile_map[0][choice[0]][choice[1]] = 1
+            self.tile_map[1][choice[0]][choice[1]] = 0
             self.apple = choice
 
     def draw_everything(self,WIN) :
@@ -149,35 +155,43 @@ class map_class(object):
                 score = self.first_snake.size - 3
                 self.kill_snake(1)
                 return "first_died",score
-            elif self.tile_map[next_x][next_y][0] == 0 or (self.tile_map[next_x][next_y][0] == 2 and self.tile_map[next_x][next_y][1] == 1) :
+            
+            #There si nothing in front of the snake or there is his tail which will move
+            elif self.tile_map[0][next_x][next_y] == 0 or (self.tile_map[0][next_x][next_y] == 2 and self.tile_map[1][next_x][next_y] == 1) :
                 #Snake moves foward
                 for i in range(self.first_snake.size-1,-1,-1) :
                     segment = self.first_snake.segments_pos[i]
                     if i == self.first_snake.size-1 :
-                        self.tile_map[segment[0]][segment[1]] = [0,0]
+                        self.tile_map[0][segment[0]][segment[1]] = 0
+                        self.tile_map[1][segment[0]][segment[1]] = 0
                         self.first_snake.segments_pos.remove(segment)
                     else :
-                        self.tile_map[segment[0]][segment[1]][1] -= 1
+                        self.tile_map[1][segment[0]][segment[1]] -= 1
                 #append the new head
                 self.first_snake.segments_pos.insert(0,[next_x,next_y])
-                self.tile_map[next_x][next_y] = [2,self.first_snake.size]
-            elif self.tile_map[next_x][next_y][0] > 1  :
+                self.tile_map[0][next_x][next_y] = 2
+                self.tile_map[1][next_x][next_y] = self.first_snake.size
+
+            #hits a snake
+            elif self.tile_map[0][next_x][next_y] > 1  :
                 #possible Game over
-                if self.tile_map[next_x][next_y][0] == 2 and self.tile_map[next_x][next_y][1] != 1 :
+                if self.tile_map[0][next_x][next_y] == 2 and self.tile_map[1][next_x][next_y] != 1 :
                     #GAME OVER 
                     score = self.first_snake.size - 3
                     self.kill_snake(1)
                     return "first_died", score
-                if self.second_snake != None and self.tile_map[next_x][next_y][0] == 3 :
+                if self.second_snake != None and self.tile_map[0][next_x][next_y] == 3 :
                     #GAME OVER 
                     score = self.first_snake.size - 3
                     self.kill_snake(1)
                     return "first_died", score
-            elif self.tile_map[next_x][next_y][0] == 1 :
+            #eats an apple
+            elif self.tile_map[0][next_x][next_y] == 1 :
                 #If the snake eats an apple
                 self.first_snake.size +=1
                 self.first_snake.segments_pos.insert(0,[next_x,next_y])
-                self.tile_map[next_x][next_y] = [2,self.first_snake.size]
+                self.tile_map[0][next_x][next_y] = 2
+                self.tile_map[1][next_x][next_y] = self.first_snake.size
                 self.spawn_apple()
             #End of first snake movement
             if self.first_snake != None :
@@ -197,35 +211,38 @@ class map_class(object):
                 score = self.second_snake.size - 3
                 self.kill_snake(2)
                 return "second_died",score
-            elif self.tile_map[next_x][next_y][0] == 0 or (self.tile_map[next_x][next_y][0] == 3 and self.tile_map[next_x][next_y][1] == 1) :
+            elif self.tile_map[0][next_x][next_y] == 0 or (self.tile_map[0][next_x][next_y] == 3 and self.tile_map[1][next_x][next_y] == 1) :
                 #Snake moves foward
                 for i in range(self.second_snake.size-1,-1,-1) :
                     segment = self.second_snake.segments_pos[i]
                     if i == self.second_snake.size-1 :
-                        self.tile_map[segment[0]][segment[1]] = [0,0]
+                        self.tile_map[0][segment[0]][segment[1]] = 0
+                        self.tile_map[1][segment[0]][segment[1]] = 0
                         self.second_snake.segments_pos.remove(segment)
                     else :
-                        self.tile_map[segment[0]][segment[1]][1] -= 1
+                        self.tile_map[1][segment[0]][segment[1]] -= 1
                 #append the new head
                 self.second_snake.segments_pos.insert(0,[next_x,next_y])
-                self.tile_map[next_x][next_y] = [3,self.second_snake.size]
-            elif self.tile_map[next_x][next_y][0] > 1  :
+                self.tile_map[0][next_x][next_y] = 3
+                self.tile_map[1][next_x][next_y] = self.second_snake.size
+            elif self.tile_map[0][next_x][next_y] > 1  :
                 #possible Game over
-                if self.tile_map[next_x][next_y][0] == 3 and self.tile_map[next_x][next_y][1] != 1 :
+                if self.tile_map[0][next_x][next_y] == 3 and self.tile_map[1][next_x][next_y] != 1 :
                     #GAME OVER 
                     score = self.second_snake.size - 3
                     self.kill_snake(2)
                     return "second_died", score
-                elif self.first_snake != None and self.tile_map[next_x][next_y][0] == 2 :
+                elif self.first_snake != None and self.tile_map[0][next_x][next_y] == 2 :
                     #GAME OVER 
                     score = self.second_snake.size - 3
                     self.kill_snake(2)
                     return "second_died", score
-            elif self.tile_map[next_x][next_y][0] == 1 :
+            elif self.tile_map[0][next_x][next_y] == 1 :
                 #If the snake eats an apple
                 self.second_snake.size +=1
                 self.second_snake.segments_pos.insert(0,[next_x,next_y])
-                self.tile_map[next_x][next_y] = [3,self.second_snake.size]
+                self.tile_map[0][next_x][next_y] = 3
+                self.tile_map[1][next_x][next_y] = self.second_snake.size
                 self.spawn_apple()
             #End of first snake movement
             if self.second_snake != None :
@@ -241,12 +258,14 @@ class map_class(object):
         if which == 1 :
             #Kill the first snake
             for pos in self.first_snake.segments_pos :
-                self.tile_map[pos[0]][pos[1]] = [0,0]
+                self.tile_map[0][pos[0]][pos[1]] = 0
+                self.tile_map[1][pos[0]][pos[1]] = 0
             self.first_snake = None
         else :
             #kill second snake
             for pos in self.second_snake.segments_pos :
-                self.tile_map[pos[0]][pos[1]] = [0,0]
+                self.tile_map[0][pos[0]][pos[1]] = 0
+                self.tile_map[1][pos[0]][pos[1]] = 0
             self.second_snake = None
 
 

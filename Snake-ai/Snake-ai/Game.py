@@ -4,6 +4,7 @@ import os
 import map_classes
 from map_classes import tile_pixel, map_border,deafoult_size
 import game_over
+import time
 
 
 def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
@@ -19,7 +20,8 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
         pygame.draw.rect(WIN,(0,0,0),pygame.Rect(WIDTH/2-map_segment_size/2 + map_border,HEIGHT/2-map_segment_size/2+map_border,map_segment_size-2*map_border,map_segment_size-2*map_border))
         Map.draw_everything(WIN)
         pygame.display.update()
-
+    print(Map.tile_map[0])
+    print(Map.tile_map[1])
     #moves every twenty frames
     game_speed = 15
     speed_counter = game_speed
@@ -88,5 +90,6 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
                     elif event.key == pygame.K_RIGHT and Map.second_snake.direction %2 == 1  :
                         Map.second_snake.direction = 4
                         Map.second_snake.direction_changed = True
+
 
 
