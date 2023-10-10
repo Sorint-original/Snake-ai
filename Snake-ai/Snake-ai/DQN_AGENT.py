@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import time
 
 from memory_profiler import profile  
+from Networks import Q_net
 
 
 
@@ -133,25 +134,6 @@ class Memory(object):  # stored as ( state, action, reward, next_state ) in SumT
         ps = np.power(clipped_errors, self.PER_a)
         for ti, p in zip(tree_idx, ps):
             self.tree.update(ti, p.item())
-
-
-class Q_net(nn.Module):
-    def __init__(self,_state_size,_action_size) :
-        super(Q_net, self).__init__()
-        self.model = nn.Sequential(
-            nn.Linear(_state_size, 256),
-            nn.ReLU(),
-            nn.Linear(256, 256),
-            nn.ReLU(),
-            nn.Linear(256, 256),
-            nn.ReLU(),
-            nn.Linear(256, 256),
-            nn.ReLU(),
-            nn.Linear(256,_action_size)
-            )
-        
-    def forward(self, x):
-        return self.model(x)
 
 
 Expirience = namedtuple('Expirience',('state', 'action', 'next_state', 'reward'))

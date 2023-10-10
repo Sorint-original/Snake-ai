@@ -20,8 +20,6 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
         pygame.draw.rect(WIN,(0,0,0),pygame.Rect(WIDTH/2-map_segment_size/2 + map_border,HEIGHT/2-map_segment_size/2+map_border,map_segment_size-2*map_border,map_segment_size-2*map_border))
         Map.draw_everything(WIN)
         pygame.display.update()
-    print(Map.tile_map[0])
-    print(Map.tile_map[1])
     #moves every twenty frames
     game_speed = 15
     speed_counter = game_speed

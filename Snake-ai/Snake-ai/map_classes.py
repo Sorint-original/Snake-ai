@@ -73,7 +73,7 @@ class map_class(object):
         for i in range(self.size):
             xs.append(i)
         choice = None
-        while choice == None :
+        while choice == None and len(xs) > 0 :
             x = random.choice(xs)
             xs.remove(x)
             ys = []
