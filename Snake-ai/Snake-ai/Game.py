@@ -16,6 +16,7 @@ def game (WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
     pygame.draw.rect(WIN,(50,200,50),pygame.Rect(WIDTH/2-map_segment_size/2,HEIGHT/2-map_segment_size/2,map_segment_size,map_segment_size))
     pygame.draw.rect(WIN,(0,0,0),pygame.Rect(WIDTH/2-map_segment_size/2 + map_border,HEIGHT/2-map_segment_size/2+map_border,map_segment_size-2*map_border,map_segment_size-2*map_border))
     Map = map_classes.map_class(deafoult_size,SCENARIO,WIN)
+    
     def draw_window(WIN) :
         pygame.draw.rect(WIN,(0,0,0),pygame.Rect(WIDTH/2-map_segment_size/2 + map_border,HEIGHT/2-map_segment_size/2+map_border,map_segment_size-2*map_border,map_segment_size-2*map_border))
         Map.draw_everything(WIN)

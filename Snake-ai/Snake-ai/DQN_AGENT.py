@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import time
 
 from memory_profiler import profile  
-from Networks import Q_net
+from Networks import SNAKE_Q_NET
 
 
 
@@ -132,17 +132,18 @@ class Memory(object):  # stored as ( state, action, reward, next_state ) in SumT
         abs_errors += self.PER_e  # convert to abs and avoid 0
         clipped_errors = np.minimum(abs_errors, self.absolute_error_upper)
         ps = np.power(clipped_errors, self.PER_a)
+        ps = ps.squeeze()
         for ti, p in zip(tree_idx, ps):
             self.tree.update(ti, p.item())
 
 
-Expirience = namedtuple('Expirience',('state', 'action', 'next_state', 'reward'))
+Expirience = namedtuple('Expirience',('matrix','direction', 'action', 'next_matrix','next_direction', 'reward'))
 
 class DQN_Agent:
-    def __init__(self,observation_space,action_space,learning_rate,gamma,device, trained_model = None):
+    def __init__(self,map_size,action_space,learning_rate,gamma,device, trained_model = None):
         
         # Initialize base statistics
-        self._state_size = observation_space
+        self.env_size = map_size
         self._action_size = action_space
         self.device = device
 
@@ -156,24 +157,27 @@ class DQN_Agent:
         self.criterion = nn.SmoothL1Loss()
         
         # Build main network and the target network
-        self.q_network = Q_net(self._state_size,self._action_size).to(device)
-        self.target_network = Q_net(self._state_size,self._action_size).to(device)
-        self.target_network.load_state_dict(self.q_network.state_dict())
+        if trained_model == None:
+            self.q_network = SNAKE_Q_NET(self.env_size,self._action_size).to(device)
+            self.target_network = SNAKE_Q_NET(self.env_size,self._action_size).to(device)
+            self.target_network.load_state_dict(self.q_network.state_dict())
         
         self._optimizer = optim.Adam(self.q_network.parameters(),lr = learning_rate)
     
     #The function that stores past expiriences
-    def store(self, state, action, reward, next_state, terminated):
+    def store(self, matrix,direction, action, reward, next_matrix,next_direction, terminated):
         if terminated == True :
-            next_state = None
-        self.expirience_replay.store(Expirience(state,action,next_state,reward))
+            next_matrix = None
+            next_direction = None
+        self.expirience_replay.store(Expirience(matrix,direction,action,next_matrix,next_direction,reward))
     
     #Get the action
-    def act(self, state):
+    def act(self, matrix,direction):
         with torch.no_grad():
-            action = self.q_network(state).max(1)[1].view(1, 1)
-            #print(action)
-            return action
+            action = self.q_network(matrix,direction)
+            action = torch.argmax(action)
+            return action.unsqueeze(-1)
+
 
     
     #The ratraining 
@@ -192,33 +196,33 @@ class DQN_Agent:
             leaf_index,expiriences = self.expirience_replay.sample(batch_size)
             batch = Expirience(*zip(*expiriences))
 
-            non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,batch.next_state)), device=self.device, dtype=torch.bool)
-            non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
-            
-            state_batch = torch.cat(batch.state)
+            non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,batch.next_matrix)), device=self.device, dtype=torch.bool)
+            non_final_next_states = torch.cat([s for s in batch.next_matrix if s is not None])
+            non_final_next_directions = torch.cat([s for s in batch.next_direction if s is not None]).unsqueeze(1)
+            matrix_batch = torch.cat(batch.matrix)
+            direction_batch = torch.cat(batch.direction).unsqueeze(1)
             action_batch = torch.cat(batch.action)
             reward_batch = torch.cat(batch.reward)
 
             batch_index = np.arange(batch_size,dtype = np.int32)
             
             #the values taken by the network
-            state_action_values =  self.q_network(state_batch).gather(1,action_batch)
+            state_action_values =  self.q_network(matrix_batch,direction_batch).gather(1,action_batch.unsqueeze(0))
 
             next_state_values = torch.zeros(batch_size,device=self.device)
         
             with torch.no_grad():
-                next_state_values[non_final_mask] = self.q_network(non_final_next_states).max(1)[0]
+                next_state_values[non_final_mask] = self.q_network(non_final_next_states,non_final_next_directions).max(1)[0]
 
 
             expected_state_action_values = (next_state_values * self.gamma) + reward_batch
-
             indices = np.arange(batch_size, dtype=np.int32)
-            errors = torch.abs(state_action_values.squeeze(1) - expected_state_action_values)
+            errors = torch.abs(state_action_values.squeeze(0) - expected_state_action_values)
             # Update priority
             self.expirience_replay.batch_update(leaf_index, errors)
             
             #Compute loss
-            loss = self.criterion( expected_state_action_values.unsqueeze(1),state_action_values)
+            loss = self.criterion( expected_state_action_values.squeeze(0).unsqueeze(1),state_action_values.squeeze(0).unsqueeze(1))
             loss.backward()
             self._optimizer.step()
             torch.nn.utils.clip_grad_value_(self.q_network.parameters(), 100)
@@ -232,6 +236,9 @@ class DQN_Agent:
         #Save model
         torch.save(self.q_network.state_dict(), filename)
         #Save graphs
+        max_score = np.max(score_log)
+        loss_log = [x*max_score for x in loss_log]
+        epsilon_log = [x*max_score for x in epsilon_log]
         plt.plot(iterations, epsilon_log, label = "Randomization", color = 'green')
         plt.plot(iterations,loss_log, label = "Loss",color="red")
         plt.plot(iterations, score_log, label = "Score", color = 'tab:blue')
@@ -246,7 +253,6 @@ class DQN_Agent:
         plt.plot(iterations, average, label = "Score Average",color = 'tab:orange')
         plt.ylabel('Return/Randomization factor')
         plt.xlabel('Iterations')
-        plt.ylim(top=550)
         plt.legend()
         plt.savefig(filename+".png")
         

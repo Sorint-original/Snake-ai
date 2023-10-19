@@ -57,7 +57,7 @@ class map_class(object):
             for i in range(len(self.first_snake.segments_pos)) :
                 self.tile_map[0][self.first_snake.segments_pos[i][0]][self.first_snake.segments_pos[i][1]] = 2
                 self.tile_map[1][self.first_snake.segments_pos[i][0]][self.first_snake.segments_pos[i][1]] = self.first_snake.size-i
-        if SCENARIO == 1 :
+        if SCENARIO >= 1 :
             #spawn second snake
             self.second_snake = snake_class(1)
             for i in range(len(self.second_snake.segments_pos)) :
@@ -65,7 +65,8 @@ class map_class(object):
                 self.tile_map[1][self.second_snake.segments_pos[i][0]][self.second_snake.segments_pos[i][1]] = self.second_snake.size-i
         #Spawn apple indferent of the scenario
         self.spawn_apple()
-        self.draw_everything(WIN)
+        if  WIN :
+            self.draw_everything(WIN)
 
 
     def spawn_apple(self) :
