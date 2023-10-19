@@ -9,10 +9,9 @@ import time
 import os
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-Learning_rate = 0.1
+torch.set_default_device(device)
+Learning_rate = 0.0001
 Gamma = 0.6
-
-print(torch.cuda.is_available())
 
 def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
     #close the desplay for the training part to save processing power
@@ -46,8 +45,8 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
         procesing_matrix = deepcopy(map.tile_map)
         procesing_matrix[0] =  [ [x/3 for x in y] for y in procesing_matrix[0]]
         procesing_matrix[1] = [ [x/255 for x in y] for y in procesing_matrix[1]]
-        procesing_matrix = torch.tensor([procesing_matrix])
-        direction = torch.tensor([map.second_snake.direction/4])
+        procesing_matrix = torch.tensor([procesing_matrix],device=device,dtype = torch.float32)
+        direction = torch.tensor([map.second_snake.direction/4],device=device,dtype = torch.float32)
         #the episode loop 
         while episode_timer > 0 :
             episode_timer -= 1
@@ -82,9 +81,9 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
             nextprocesing_matrix = deepcopy(map.tile_map)
             nextprocesing_matrix[0] = [ [x/3 for x in y] for y in nextprocesing_matrix[0]]
             nextprocesing_matrix[1] = [ [x/255 for x in y] for y in nextprocesing_matrix[1]]
-            nextprocesing_matrix = torch.tensor([nextprocesing_matrix])
+            nextprocesing_matrix = torch.tensor([nextprocesing_matrix],device=device,dtype = torch.float32)
             if terminated == False :
-                nextdirection = torch.tensor([map.second_snake.direction/4])
+                nextdirection = torch.tensor([map.second_snake.direction/4],device=device,dtype = torch.float32)
             else:
                 nextdirection = None
             

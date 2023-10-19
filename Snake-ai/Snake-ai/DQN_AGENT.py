@@ -130,7 +130,7 @@ class Memory(object):  # stored as ( state, action, reward, next_state ) in SumT
     def batch_update(self, tree_idx, abs_errors):
         abs_errors = abs_errors.detach()
         abs_errors += self.PER_e  # convert to abs and avoid 0
-        clipped_errors = np.minimum(abs_errors, self.absolute_error_upper)
+        clipped_errors = np.minimum(abs_errors.cpu(), self.absolute_error_upper)
         ps = np.power(clipped_errors, self.PER_a)
         ps = ps.squeeze()
         for ti, p in zip(tree_idx, ps):
