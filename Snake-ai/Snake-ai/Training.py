@@ -11,16 +11,20 @@ import os
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
 Learning_rate = 0.0001
-Gamma = 0.6
+Gamma = 0.7
 
 def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
     #close the desplay for the training part to save processing power
     pygame.display.quit() 
     WIN = None
-    print("load or new: ", end="")
-    answer = input()
-    if answer == "new":
+    print("learning rate: ",end = "")
+    Learning_rate = float(input())
+    print("load or new (1/0): ", end="")
+    answer = int(input())
+    if answer == 0:
         agent = DQN_Agent(deafoult_size,3,Learning_rate,Gamma,device)
+    else:
+        agent = DQN_Agent(deafoult_size,3,Learning_rate,Gamma,device,answer)
     print("Epsilon decay: ", end="")
     epsilon = 1
     epsilon_min = 0.001
@@ -42,20 +46,23 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
         apple_count = 0
         episode_timer=max_ep_time
         
+
         procesing_matrix = deepcopy(map.tile_map)
         procesing_matrix[0] =  [ [x/3 for x in y] for y in procesing_matrix[0]]
         procesing_matrix[1] = [ [x/255 for x in y] for y in procesing_matrix[1]]
         procesing_matrix = torch.tensor([procesing_matrix],device=device,dtype = torch.float32)
-        direction = torch.tensor([map.second_snake.direction/4],device=device,dtype = torch.float32)
+        info = torch.tensor([[map.second_snake.direction/4,(map.apple[0]-map.second_snake.segments_pos[0][0])/(deafoult_size-1),(map.apple[1]-map.second_snake.segments_pos[0][1])/(deafoult_size-1)]],device=device,dtype = torch.float32)
+        time = 0
         #the episode loop 
         while episode_timer > 0 :
+            time+=1
             episode_timer -= 1
             #saveing apple
             ver_apple = deepcopy(map.apple)
             if np.random.rand() <= epsilon:
                 action = torch.tensor([random.randint(0,2)],device=device,dtype = torch.long)
             else :
-                action = agent.act(procesing_matrix,direction)
+                action = agent.act(procesing_matrix,info)
             if action.item() == 0:
                 map.second_snake.direction -= 1;
                 if map.second_snake.direction == 0 :
@@ -69,7 +76,7 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
             if Status == "nothing" :
                 terminated = False
                 if ver_apple != map.apple :
-                    reward = 25 * map.second_snake.size
+                    reward = 35 * map.second_snake.size
                     episode_timer = max_ep_time
                     apple_count += 1
                 else :
@@ -83,20 +90,20 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
             nextprocesing_matrix[1] = [ [x/255 for x in y] for y in nextprocesing_matrix[1]]
             nextprocesing_matrix = torch.tensor([nextprocesing_matrix],device=device,dtype = torch.float32)
             if terminated == False :
-                nextdirection = torch.tensor([map.second_snake.direction/4],device=device,dtype = torch.float32)
+                nextinfo = torch.tensor([[map.second_snake.direction/4,(map.apple[0]-map.second_snake.segments_pos[0][0])/(deafoult_size-1),(map.apple[1]-map.second_snake.segments_pos[0][1])/(deafoult_size-1)]],device=device,dtype = torch.float32)
             else:
-                nextdirection = None
+                nextinfo = None
             
             reward = torch.tensor([reward])
-            agent.store(procesing_matrix,direction,action,reward,nextprocesing_matrix,nextdirection,terminated)
+            agent.store(procesing_matrix,info,action,reward,nextprocesing_matrix,nextinfo,terminated)
             procesing_matrix = nextprocesing_matrix
-            direction = nextdirection
+            info = nextinfo
             
             if terminated == True :
                 break
             
         loss = agent.retrain(batch_size)
-        print(f"Episode {episode}, Score: {apple_count}")
+        print(f"Episode {episode}, Score: {apple_count}, Time: {time}")
         Scores_log.append(apple_count);
         Epsilon_log.append(epsilon)
         Loss_log.append(loss)
@@ -105,7 +112,7 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
 
     directory = "saved DQN/"
     #training finnished
-    if answer == "new" :
+    if answer >= 0 :
         count = 0
         for path in os.listdir(directory):
             # check if current path is a file

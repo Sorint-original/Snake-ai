@@ -29,30 +29,32 @@ class SNAKE_Q_NET(nn.Module):
         super(SNAKE_Q_NET, self).__init__()
         layers = []
         self.neural_chunk = 80
-        for i in range(1,size,1) :
+        for i in range(1,size-1,1) :
             layers.append(nn.Conv2d(max(2,self.neural_chunk*(i-1)),self.neural_chunk*i,2,1,0,1,2))
             layers.append(nn.SiLU())
+
+        layers.append(nn.Conv2d(self.neural_chunk*(size-2),2,2,1,0,1,2))
             
         self.CNN = nn.Sequential(*layers)
         self.FC_N = nn.Sequential(
-            nn.Linear(self.neural_chunk*(size-1)+1, 1500),
+            nn.Linear(5,1100 ),
             nn.SiLU(),
-            nn.Linear( 1500,1500),
+            nn.Linear( 1100,1100),
             nn.SiLU(),
-            nn.Linear(1500, 1500),
+            nn.Linear(1100, 1100),
             nn.SiLU(),
-            nn.Linear( 1500,action_space)
+            nn.Linear( 1100,action_space)
             )
 
         
-    def forward(self, matrixes,direction):
+    def forward(self, matrixes,info):
         map_data = self.CNN(matrixes)
         map_data = map_data.squeeze()
-        if np.shape(direction) == torch.Size([1]) :
-            merge = [map_data,direction]
+        if np.shape(info) == torch.Size([1,3]) :
+            merge = [map_data,info.squeeze()]
             map_data = torch.cat(merge)
         else :
-            map_data = torch.cat((map_data,direction),1)
+            map_data = torch.cat((map_data,info.squeeze()),1)
 
         return self.FC_N(map_data)
 

@@ -8,6 +8,7 @@ import random
 import matplotlib
 import matplotlib.pyplot as plt
 import time
+import os
 
 from memory_profiler import profile  
 from Networks import SNAKE_Q_NET
@@ -137,7 +138,7 @@ class Memory(object):  # stored as ( state, action, reward, next_state ) in SumT
             self.tree.update(ti, p.item())
 
 
-Expirience = namedtuple('Expirience',('matrix','direction', 'action', 'next_matrix','next_direction', 'reward'))
+Expirience = namedtuple('Expirience',('matrix','info', 'action', 'next_matrix','next_info', 'reward'))
 
 class DQN_Agent:
     def __init__(self,map_size,action_space,learning_rate,gamma,device, trained_model = None):
@@ -161,20 +162,40 @@ class DQN_Agent:
             self.q_network = SNAKE_Q_NET(self.env_size,self._action_size).to(device)
             self.target_network = SNAKE_Q_NET(self.env_size,self._action_size).to(device)
             self.target_network.load_state_dict(self.q_network.state_dict())
+        else :
+            #if we get a saved model it will be a number, i need to get the version specified
+            #the name of a folder/model it will be "DQN_NeNe_VX.y"
+            #x beeing the specific version of the model
+            #and y is how many times it has been updated
+            #we only trace x to fetch the mode
+            directory = "saved DQN/"
+            for file in os.walk(directory) :
+                for name in file:
+                    try:
+                        segments = name.split(".")
+                        if segments[0] == "saved DQN/DQN_NeNe_V" + str(trained_model) :
+                            model_load = name 
+                            print(model_load)
+                    except:
+                        x=10
+            self.q_network = SNAKE_Q_NET(self.env_size,self._action_size).to(device)
+            self.target_network = SNAKE_Q_NET(self.env_size,self._action_size).to(device)
+            self.target_network.load_state_dict(self.q_network.state_dict())
+            
         
         self._optimizer = optim.Adam(self.q_network.parameters(),lr = learning_rate)
     
     #The function that stores past expiriences
-    def store(self, matrix,direction, action, reward, next_matrix,next_direction, terminated):
+    def store(self, matrix,info, action, reward, next_matrix,next_info, terminated):
         if terminated == True :
             next_matrix = None
-            next_direction = None
-        self.expirience_replay.store(Expirience(matrix,direction,action,next_matrix,next_direction,reward))
+            next_info = None
+        self.expirience_replay.store(Expirience(matrix,info,action,next_matrix,next_info,reward))
     
     #Get the action
-    def act(self, matrix,direction):
+    def act(self, matrix,info):
         with torch.no_grad():
-            action = self.q_network(matrix,direction)
+            action = self.q_network(matrix,info)
             action = torch.argmax(action)
             return action.unsqueeze(-1)
 
@@ -198,21 +219,21 @@ class DQN_Agent:
 
             non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,batch.next_matrix)), device=self.device, dtype=torch.bool)
             non_final_next_states = torch.cat([s for s in batch.next_matrix if s is not None])
-            non_final_next_directions = torch.cat([s for s in batch.next_direction if s is not None]).unsqueeze(1)
+            non_final_next_info = torch.cat([s for s in batch.next_info if s is not None]).unsqueeze(1)
             matrix_batch = torch.cat(batch.matrix)
-            direction_batch = torch.cat(batch.direction).unsqueeze(1)
+            info_batch = torch.cat(batch.info)
             action_batch = torch.cat(batch.action)
             reward_batch = torch.cat(batch.reward)
 
             batch_index = np.arange(batch_size,dtype = np.int32)
             
             #the values taken by the network
-            state_action_values =  self.q_network(matrix_batch,direction_batch).gather(1,action_batch.unsqueeze(0))
+            state_action_values =  self.q_network(matrix_batch,info_batch).gather(1,action_batch.unsqueeze(0))
 
             next_state_values = torch.zeros(batch_size,device=self.device)
         
             with torch.no_grad():
-                next_state_values[non_final_mask] = self.q_network(non_final_next_states,non_final_next_directions).max(1)[0]
+                next_state_values[non_final_mask] = self.q_network(non_final_next_states,non_final_next_info).max(1)[0]
 
 
             expected_state_action_values = (next_state_values * self.gamma) + reward_batch
@@ -237,7 +258,6 @@ class DQN_Agent:
         torch.save(self.q_network.state_dict(), filename)
         #Save graphs
         max_score = np.max(score_log)
-        loss_log = [x*max_score for x in loss_log]
         epsilon_log = [x*max_score for x in epsilon_log]
         plt.plot(iterations, epsilon_log, label = "Randomization", color = 'green')
         plt.plot(iterations,loss_log, label = "Loss",color="red")
