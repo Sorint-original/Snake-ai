@@ -33,11 +33,11 @@ class SNAKE_Q_NET(nn.Module):
             layers.append(nn.Conv2d(max(2,self.neural_chunk*(i-1)),self.neural_chunk*i,2,1,0,1,2))
             layers.append(nn.SiLU())
 
-        layers.append(nn.Conv2d(self.neural_chunk*(size-2),2,2,1,0,1,2))
+        layers.append(nn.Conv2d(self.neural_chunk*(size-2),6,2,1,0,1,2))
             
         self.CNN = nn.Sequential(*layers)
         self.FC_N = nn.Sequential(
-            nn.Linear(5,1100 ),
+            nn.Linear(9,1100 ),
             nn.SiLU(),
             nn.Linear( 1100,1100),
             nn.SiLU(),

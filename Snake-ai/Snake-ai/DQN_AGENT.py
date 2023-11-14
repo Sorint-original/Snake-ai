@@ -156,6 +156,9 @@ class DQN_Agent:
         # Initialize discount 
         self.gamma = gamma
         self.criterion = nn.SmoothL1Loss()
+
+        self.version = trained_model
+        self.update = None
         
         # Build main network and the target network
         if trained_model == None:
@@ -169,19 +172,30 @@ class DQN_Agent:
             #and y is how many times it has been updated
             #we only trace x to fetch the mode
             directory = "saved DQN/"
+            done = False
             for file in os.walk(directory) :
                 for name in file:
                     try:
                         segments = name.split(".")
                         if segments[0] == "saved DQN/DQN_NeNe_V" + str(trained_model) :
+                            if len(segments) > 1 :
+                                self.update = segments[1]
+                            else :
+                                self.update = 0
                             model_load = name 
-                            print(model_load)
+                            aux = model_load.split("/")
+                            model_load = model_load + "/"+aux[1]
+                            done = True
                     except:
-                        x=10
-            self.q_network = SNAKE_Q_NET(self.env_size,self._action_size).to(device)
-            self.target_network = SNAKE_Q_NET(self.env_size,self._action_size).to(device)
-            self.target_network.load_state_dict(self.q_network.state_dict())
-            
+                        x=101
+                    if done == True :
+                        break
+                if done == True :
+                    break
+                
+            self.q_network = torch.load(model_load)
+            self.target_network = torch.load(model_load)
+
         
         self._optimizer = optim.Adam(self.q_network.parameters(),lr = learning_rate)
     
@@ -253,9 +267,17 @@ class DQN_Agent:
         
            
 
-    def save_model(self,iterations,score_log,epsilon_log,loss_log, filename):
+    def save_model(self,iterations,score_log,epsilon_log,loss_log, filename,ram,gpu,cpu):
+        if self.version != None :
+            #remove the previous version
+            aux = filename.split("/")
+            delete_file = aux[0]+"/"+aux[1]+"/"+aux[1]
+            os.remove(delete_file)
+            #change the name to the updated version for the new save of a previously existent file
+            newname = "DQN_NeNe_V"+str(self.version)+"."+str(self.update + 1)
+            filename = filename + "/" + newname
         #Save model
-        torch.save(self.q_network.state_dict(), filename)
+        torch.save(self.q_network, filename)
         #Save graphs
         max_score = np.max(score_log)
         epsilon_log = [x*max_score for x in epsilon_log]
@@ -275,6 +297,21 @@ class DQN_Agent:
         plt.xlabel('Iterations')
         plt.legend()
         plt.savefig(filename+".png")
+        plt.clf()
+        #the pc_performance
+        seconds = range(1, len(ram)+1, 1)
+        plt.plot(seconds,gpu,label="Gpu", color = 'green')
+        plt.plot(seconds,cpu,label="Cpu", color = 'tab:blue')
+        plt.plot(seconds,ram,label="Ram", color = 'tab:pink')
+        plt.ylabel('percent')
+        plt.xlabel('seconds')
+        plt.legend()
+        plt.savefig(filename+" Pc Performance.png")
+        plt.clf()
+        #if it is an update of a model rename the file with the new update
+        if self.version != None :
+            os.rename(aux[0]+"/"+aux[1],aux[0]+"/"+newname)
+            
         
 
 
