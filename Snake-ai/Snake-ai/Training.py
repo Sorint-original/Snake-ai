@@ -18,6 +18,7 @@ torch.set_default_device(device)
 Learning_rate = 0.0001
 Gamma = 0.7
 process = psutil.Process()
+totl_memory = (((psutil.virtual_memory().total)/(1024**3))/100)
 
 ram = []
 gpu = []
@@ -27,7 +28,7 @@ test = True
 def get_process_data() :  
     global test,ram,cpu,gpu
     while test == True :
-        ram.append((process.memory_info().rss/(1024**3))/(((psutil.virtual_memory().total)/(1024**3))/100))
+        ram.append((process.memory_info().rss/(1024**3))/totl_memory)
         GPUs = GPUtil.getGPUs()
         load = GPUs[0].load
         gpu.append(load*100)
@@ -49,14 +50,15 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
     WIN = None
     print("learning rate: ",end = "")
     Learning_rate = float(input())
-    print("load or new (1/0): ", end="")
-    answer = int(input())
-    if answer < 0:
+    print("load numbe or (-1) new model :", end="")
+    answer = input()
+    if answer == "-1":
         agent = DQN_Agent(deafoult_size,3,Learning_rate,Gamma,device)
     else:
         agent = DQN_Agent(deafoult_size,3,Learning_rate,Gamma,device,answer)
+    print("Epsilon start: ", end="")  
+    epsilon = float(input())
     print("Epsilon decay: ", end="")
-    epsilon = 1
     epsilon_min = 0.001
     epsilon_decay = float(input())
     print("number of episodes: ", end="")
@@ -147,14 +149,14 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
         epsilon =  max(epsilon*epsilon_decay,epsilon_min)
 
     test = False
-    directory = "saved DQN/"
+    directory = "saved DQN"
     
     #training finnished
     iterations = range(1, num_of_episodes+1, 1)
 
     eval_thread.join()
     
-    if answer < 0 :
+    if answer == "-1" :
         count = 0
         for path in os.listdir(directory):
             # check if current path is a file
@@ -162,15 +164,19 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
                 count += 1
 
         Name = "DQN_NeNe_V" + str(count)
-        aux_directory =  directory +Name
+        aux_directory =  directory+"/" +Name
         os.mkdir(aux_directory)
         aux_directory = aux_directory + "/"+ Name
         agent.save_model(iterations,Scores_log,Epsilon_log,Loss_log,aux_directory,ram,gpu,cpu)
     else :
-        Name = "DQN_NeNe_V"+str(agent.version)
-        if agent.update != 0 :
-            Name = Name + "."+str(agent.update)
-        aux_directory =  directory +Name
+        generations = answer.split('.')
+        aux_directory = directory
+        for i in range(len(generations)) :
+            if i == 0 :
+                Name = "DQN_NeNe_V"+str(generations[i])
+            else :
+                Name = Name+"."+str(generations[i])
+            aux_directory =  aux_directory+"/" +Name
         agent.save_model(iterations,Scores_log,Epsilon_log,Loss_log,aux_directory,ram,gpu,cpu)
         
 

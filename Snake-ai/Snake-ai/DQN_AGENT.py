@@ -158,7 +158,6 @@ class DQN_Agent:
         self.criterion = nn.SmoothL1Loss()
 
         self.version = trained_model
-        self.update = None
         
         # Build main network and the target network
         if trained_model == None:
@@ -172,27 +171,16 @@ class DQN_Agent:
             #and y is how many times it has been updated
             #we only trace x to fetch the mode
             directory = "saved DQN/"
-            done = False
-            for file in os.walk(directory) :
-                for name in file:
-                    try:
-                        segments = name.split(".")
-                        if segments[0] == "saved DQN/DQN_NeNe_V" + str(trained_model) :
-                            if len(segments) > 1 :
-                                self.update = segments[1]
-                            else :
-                                self.update = 0
-                            model_load = name 
-                            aux = model_load.split("/")
-                            model_load = model_load + "/"+aux[1]
-                            done = True
-                    except:
-                        x=101
-                    if done == True :
-                        break
-                if done == True :
-                    break
-                
+            gen = self.version.split('.')
+            name = "DQN_NeNe_V"
+            directory = "saved DQN"
+            for i in range(len(gen)) :
+                if i == 0 :
+                    name = name + gen[i]
+                else :
+                    name = name + '.' + gen[i]
+                directory = directory + '/' + name
+            model_load = directory+'/' + name
             self.q_network = torch.load(model_load)
             self.target_network = torch.load(model_load)
 
@@ -269,13 +257,17 @@ class DQN_Agent:
 
     def save_model(self,iterations,score_log,epsilon_log,loss_log, filename,ram,gpu,cpu):
         if self.version != None :
-            #remove the previous version
-            aux = filename.split("/")
-            delete_file = aux[0]+"/"+aux[1]+"/"+aux[1]
-            os.remove(delete_file)
+            #create new version
+            count = 1
+            for path in os.listdir(filename):
+                # check if current path is a file
+                if os.path.isdir(os.path.join(filename, path)):
+                    count += 1
+            newname = "DQN_NeNe_V"+self.version + '.'+str(count)
+            aux_directory = filename+'/' +newname
+            os.mkdir(aux_directory)
             #change the name to the updated version for the new save of a previously existent file
-            newname = "DQN_NeNe_V"+str(self.version)+"."+str(self.update + 1)
-            filename = filename + "/" + newname
+            filename = aux_directory + "/" + newname
         #Save model
         torch.save(self.q_network, filename)
         #Save graphs
@@ -301,16 +293,26 @@ class DQN_Agent:
         #the pc_performance
         seconds = range(1, len(ram)+1, 1)
         plt.plot(seconds,gpu,label="Gpu", color = 'green')
+        average = []
+        for i in range(19,len(gpu)):
+            recent_gpu_sum = 0
+            for j in range(i-19,i+1) :
+                recent_gpu_sum += gpu[j]
+            average.append(recent_gpu_sum/20)
+        avg_seconds = range(20,len(ram)+1)
+        plt.plot(avg_seconds,average,label = "GPU average",color = 'tab:orange')
         plt.plot(seconds,cpu,label="Cpu", color = 'tab:blue')
         plt.plot(seconds,ram,label="Ram", color = 'tab:pink')
         plt.ylabel('percent')
-        plt.xlabel('seconds')
+        plt.xlabel('minutes')
+        #minute labels
+        (len(ram)/12+1)
+        labels = [i*round((len(ram)/12+1)/5) for i in range(6)]
+        x = [i*12 for i in labels]
+        plt.xticks(x, labels)
         plt.legend()
         plt.savefig(filename+" Pc Performance.png")
         plt.clf()
-        #if it is an update of a model rename the file with the new update
-        if self.version != None :
-            os.rename(aux[0]+"/"+aux[1],aux[0]+"/"+newname)
             
         
 
