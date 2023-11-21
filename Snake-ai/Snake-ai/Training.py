@@ -15,10 +15,8 @@ import threading
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
-Learning_rate = 0.0001
-Gamma = 0.7
 process = psutil.Process()
-totl_memory = (((psutil.virtual_memory().total)/(1024**3))/100)
+total_memory = (((psutil.virtual_memory().total)/(1024**3))/100)
 
 ram = []
 gpu = []
@@ -28,7 +26,7 @@ test = True
 def get_process_data() :  
     global test,ram,cpu,gpu
     while test == True :
-        ram.append((process.memory_info().rss/(1024**3))/totl_memory)
+        ram.append((process.memory_info().rss/(1024**3))/total_memory)
         GPUs = GPUtil.getGPUs()
         load = GPUs[0].load
         gpu.append(load*100)
@@ -40,16 +38,20 @@ def get_process_data() :
 
 def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
     global test ,ram,cpu,gpu
+    #clearing the comands
+    os.system('cls')
+    #reseting performance vectors
     ram = []
     gpu = []
     cpu = []
     test = True
     #close the desplay for the training part to save processing power
-    os.system('cls')
     pygame.display.quit() 
     WIN = None
     print("learning rate: ",end = "")
     Learning_rate = float(input())
+    print("Gamma: ",end = "")
+    Gamma = float(input())
     print("load numbe or (-1) new model :", end="")
     answer = input()
     if answer == "-1":
@@ -111,14 +113,14 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
             if Status == "nothing" :
                 terminated = False
                 if ver_apple != map.apple :
-                    reward = 35 * map.second_snake.size
+                    reward = 10
                     episode_timer = max_ep_time
                     apple_count += 1
                 else :
-                    reward = -1
+                    reward = 0
             else :
                 terminated = True
-                reward = -100
+                reward = -10
             #getting new state
             nextprocesing_matrix = deepcopy(map.tile_map)
             nextprocesing_matrix[0] = [ [x/3 for x in y] for y in nextprocesing_matrix[0]]
@@ -138,7 +140,7 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
                 break
             
         loss = agent.retrain(batch_size)
-        print(f"Episode {episode}, Score: {apple_count}, Time: {time}")
+        print(f"Episode {episode}, Score: {apple_count}, Time: {time}, Epsilon: {epsilon}")
 
 
         
