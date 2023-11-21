@@ -28,16 +28,28 @@ class SNAKE_Q_NET(nn.Module):
     def __init__(self,size,action_space) :
         super(SNAKE_Q_NET, self).__init__()
         layers = []
-        self.neural_chunk = 80
-        for i in range(1,size-1,1) :
-            layers.append(nn.Conv2d(max(2,self.neural_chunk*(i-1)),self.neural_chunk*i,2,1,0,1,2))
-            layers.append(nn.SiLU())
-
-        layers.append(nn.Conv2d(self.neural_chunk*(size-2),2,2,1,0,1,2))
             
-        self.CNN = nn.Sequential(*layers)
+        self.CNN = nn.Sequential(
+            nn.Conv2d(2,128,3,2,0,1,2),
+            nn.SiLU(),
+            nn.Conv2d(128,256,3,1,0,1,2),
+            nn.SiLU(),
+            nn.Conv2d(256,128,3,2),
+            nn.SiLU(),
+            nn.Flatten(),
+            nn.Linear(512,1280 ),
+            nn.SiLU(),
+            nn.Linear(1280,1280 ),
+            nn.SiLU(),
+            nn.Linear(1280,1280 ),
+            nn.SiLU(),
+            nn.Linear(1280,640 ),
+            nn.SiLU(),
+            nn.Linear(640,3 ),
+            )
+        '''
         self.FC_N = nn.Sequential(
-            nn.Linear(5,1100 ),
+            nn.Linear(9,1100 ),
             nn.SiLU(),
             nn.Linear( 1100,1100),
             nn.SiLU(),
@@ -45,10 +57,12 @@ class SNAKE_Q_NET(nn.Module):
             nn.SiLU(),
             nn.Linear( 1100,action_space)
             )
-
+        '''
         
     def forward(self, matrixes,info):
         map_data = self.CNN(matrixes)
+        return map_data
+        '''
         map_data = map_data.squeeze()
         if np.shape(info) == torch.Size([1,3]) :
             merge = [map_data,info.squeeze()]
@@ -57,4 +71,5 @@ class SNAKE_Q_NET(nn.Module):
             map_data = torch.cat((map_data,info.squeeze()),1)
 
         return self.FC_N(map_data)
+        '''    
 

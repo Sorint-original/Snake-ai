@@ -1,4 +1,5 @@
 from concurrent.futures import thread
+import math
 import pygame
 import torch
 from DQN_AGENT import DQN_Agent
@@ -113,14 +114,14 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
             if Status == "nothing" :
                 terminated = False
                 if ver_apple != map.apple :
-                    reward = 10
+                    reward = map.second_snake.size
                     episode_timer = max_ep_time
                     apple_count += 1
                 else :
-                    reward = 0
+                    reward = 1/max(1.0,math.sqrt((map.apple[0]-map.second_snake.segments_pos[0][0])**2 + (map.apple[1]-map.second_snake.segments_pos[0][1])**2))
             else :
                 terminated = True
-                reward = -10
+                reward = -1
             #getting new state
             nextprocesing_matrix = deepcopy(map.tile_map)
             nextprocesing_matrix[0] = [ [x/3 for x in y] for y in nextprocesing_matrix[0]]
