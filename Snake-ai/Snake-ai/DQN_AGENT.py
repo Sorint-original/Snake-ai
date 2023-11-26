@@ -300,7 +300,7 @@ class DQN_Agent:
                 plt.ylabel('Return/Randomization factor')
                 plt.xlabel('Iterations')
                 plt.legend()
-                plt.savefig(filename+".Part"+part+".png")
+                plt.savefig(filename+".Part"+str(part)+".png")
                 plt.clf()
             elif len(iterations) == 500 :
                 aux_score = score_log[:500]
@@ -328,7 +328,7 @@ class DQN_Agent:
                 plt.ylabel('Return/Randomization factor')
                 plt.xlabel('Iterations')
                 plt.legend()
-                plt.savefig(filename+"Part"+part+".png")
+                plt.savefig(filename+"Part"+str(part)+".png")
                 plt.clf()
             part =+1
         #the pc_performance
