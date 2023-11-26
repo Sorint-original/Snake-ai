@@ -271,25 +271,66 @@ class DQN_Agent:
         #Save model
         torch.save(self.q_network, filename)
         #Save graphs
-        max_score = np.max(score_log)
-        epsilon_log = [x*max_score for x in epsilon_log]
-        plt.plot(iterations, epsilon_log, label = "Randomization", color = 'green')
-        plt.plot(iterations,loss_log, label = "Loss",color="red")
-        plt.plot(iterations, score_log, label = "Score", color = 'tab:blue')
-        #calculate average
-        average = []
-        for i in range(49,len(score_log)):
-            recent_score_sum = 0
-            for j in range(i-49,i+1) :
-                recent_score_sum += score_log[j]
-            average.append(recent_score_sum/50)
-        iterations = range(50, len(epsilon_log)+1, 1)
-        plt.plot(iterations, average, label = "Score Average",color = 'tab:orange')
-        plt.ylabel('Return/Randomization factor')
-        plt.xlabel('Iterations')
-        plt.legend()
-        plt.savefig(filename+".png")
-        plt.clf()
+        #divide graphs is segments of 1000 episodes and 500 episodes
+        while len(iterations) > 0 :
+            part = 1
+            if len(iterations) >= 1000 :
+                aux_score = score_log[:1000]
+                score_log = score_log[1000:]
+                max_score = np.max(aux_score)
+                aux_epsilon = epsilon_log[:1000]
+                epsilon_log = epsilon_log[1000:]
+                epsilon_log = [x*max_score for x in epsilon_log]
+                aux_loss = loss_log[:1000]
+                loss_log = loss_log[1000:]
+                aux_iterations = iterations[:1000]
+                iterations = iterations[1000:]
+                plt.plot(aux_iterations, aux_epsilon, label = "Randomization", color = 'green')
+                plt.plot(aux_iterations,aux_loss, label = "Loss",color="red")
+                plt.plot(aux_iterations, aux_score, label = "Score", color = 'tab:blue')
+                #calculate average
+                average = []
+                for i in range(49,len(aux_score)):
+                    recent_score_sum = 0
+                    for j in range(i-49,i+1) :
+                        recent_score_sum += aux_score[j]
+                    average.append(recent_score_sum/50)
+                aux_iterations = range(50, len(aux_epsilon)+1, 1)
+                plt.plot(aux_iterations, average, label = "Score Average",color = 'tab:orange')
+                plt.ylabel('Return/Randomization factor')
+                plt.xlabel('Iterations')
+                plt.legend()
+                plt.savefig(filename+".Part"+part+".png")
+                plt.clf()
+            elif len(iterations) == 500 :
+                aux_score = score_log[:500]
+                score_log = score_log[500:]
+                max_score = np.max(aux_score)
+                aux_epsilon = epsilon_log[:500]
+                epsilon_log = epsilon_log[500:]
+                epsilon_log = [x*max_score for x in epsilon_log]
+                aux_loss = loss_log[:500]
+                loss_log = loss_log[500:]
+                aux_iterations = iterations[:500]
+                iterations = iterations[500:]
+                plt.plot(aux_iterations, aux_epsilon, label = "Randomization", color = 'green')
+                plt.plot(aux_iterations,aux_loss, label = "Loss",color="red")
+                plt.plot(aux_iterations, aux_score, label = "Score", color = 'tab:blue')
+                #calculate average
+                average = []
+                for i in range(24,len(aux_score)):
+                    recent_score_sum = 0
+                    for j in range(i-24,i+1) :
+                        recent_score_sum += aux_score[j]
+                    average.append(recent_score_sum/25)
+                aux_iterations = range(25, len(aux_epsilon)+1, 1)
+                plt.plot(aux_iterations, average, label = "Score Average",color = 'tab:orange')
+                plt.ylabel('Return/Randomization factor')
+                plt.xlabel('Iterations')
+                plt.legend()
+                plt.savefig(filename+"Part"+part+".png")
+                plt.clf()
+            part =+1
         #the pc_performance
         seconds = range(1, len(ram)+1, 1)
         plt.plot(seconds,gpu,label="Gpu", color = 'green')
