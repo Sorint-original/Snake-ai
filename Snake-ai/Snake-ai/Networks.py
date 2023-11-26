@@ -30,40 +30,45 @@ class SNAKE_Q_NET(nn.Module):
         layers = []
             
         self.CNN = nn.Sequential(
-            nn.Conv2d(2,128,3,2,0,1,2),
+            nn.Conv2d(1,128,3,1),
             nn.SiLU(),
-            nn.Conv2d(128,256,3,1,0,1,2),
+            nn.Conv2d(128,256,3,1),
             nn.SiLU(),
-            nn.Conv2d(256,128,3,2),
+            nn.Conv2d(256,512,3,2),
+            nn.SiLU(),
+            nn.Conv2d(512,512,3,2),
             nn.SiLU(),
             nn.Flatten(),
-            nn.Linear(512,1280 ),
+            nn.Linear(2048,2048),
             nn.SiLU(),
-            nn.Linear(1280,1280 ),
+            nn.Linear(2048,2048 ),
             nn.SiLU(),
-            nn.Linear(1280,1280 ),
+            nn.Linear(2048,512 ),
             nn.SiLU(),
-            nn.Linear(1280,640 ),
+            nn.Linear(512,512 ),
             nn.SiLU(),
-            nn.Linear(640,3 ),
+            nn.Linear(512,6), 
             )
+
         '''
         self.FC_N = nn.Sequential(
-            nn.Linear(9,1100 ),
+            nn.Linear(9,512 ),
             nn.SiLU(),
-            nn.Linear( 1100,1100),
+            nn.Linear( 512,2048),
             nn.SiLU(),
-            nn.Linear(1100, 1100),
+            nn.Linear(2048, 2048),
             nn.SiLU(),
-            nn.Linear( 1100,action_space)
+            nn.Linear(2048, 512),
+            nn.SiLU(),
+            nn.Linear( 512,action_space)
             )
         '''
+
         
     def forward(self, matrixes,info):
         map_data = self.CNN(matrixes)
         return map_data
-        '''
-        map_data = map_data.squeeze()
+    '''
         if np.shape(info) == torch.Size([1,3]) :
             merge = [map_data,info.squeeze()]
             map_data = torch.cat(merge)
@@ -71,5 +76,5 @@ class SNAKE_Q_NET(nn.Module):
             map_data = torch.cat((map_data,info.squeeze()),1)
 
         return self.FC_N(map_data)
-        '''    
+    '''
 

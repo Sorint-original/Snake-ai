@@ -32,7 +32,7 @@ def get_process_data() :
         load = GPUs[0].load
         gpu.append(load*100)
         cpu.append(process.cpu_percent()/psutil.cpu_count())
-        time.sleep(5)
+        time.sleep(10)
         
     
 
@@ -85,9 +85,9 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
         episode_timer=max_ep_time
         
 
-        procesing_matrix = deepcopy(map.tile_map)
-        procesing_matrix[0] =  [ [x/3 for x in y] for y in procesing_matrix[0]]
-        procesing_matrix[1] = [ [x/255 for x in y] for y in procesing_matrix[1]]
+        procesing_matrix = deepcopy([map.tile_map[0]])
+        #procesing_matrix[0] =  [ [x for x in y] for y in procesing_matrix[0]]
+        #procesing_matrix[1] = [ [x for x in y] for y in procesing_matrix[1]]
         procesing_matrix = torch.tensor([procesing_matrix],device=device,dtype = torch.float32)
         info = torch.tensor([[map.second_snake.direction/4,(map.apple[0]-map.second_snake.segments_pos[0][0])/(deafoult_size-1),(map.apple[1]-map.second_snake.segments_pos[0][1])/(deafoult_size-1)]],device=device,dtype = torch.float32)
         time = 0
@@ -118,14 +118,14 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
                     episode_timer = max_ep_time
                     apple_count += 1
                 else :
-                    reward = 1/max(1.0,math.sqrt((map.apple[0]-map.second_snake.segments_pos[0][0])**2 + (map.apple[1]-map.second_snake.segments_pos[0][1])**2))
+                    reward = 1/math.sqrt((map.apple[0]-map.second_snake.segments_pos[0][0])**2 + (map.apple[1]-map.second_snake.segments_pos[0][1])**2)
             else :
                 terminated = True
-                reward = -1
+                reward = -15
             #getting new state
-            nextprocesing_matrix = deepcopy(map.tile_map)
-            nextprocesing_matrix[0] = [ [x/3 for x in y] for y in nextprocesing_matrix[0]]
-            nextprocesing_matrix[1] = [ [x/255 for x in y] for y in nextprocesing_matrix[1]]
+            nextprocesing_matrix = deepcopy([map.tile_map[0]])
+            #nextprocesing_matrix[0] = [ [x for x in y] for y in nextprocesing_matrix[0]]
+            #nextprocesing_matrix[1] = [ [x for x in y] for y in nextprocesing_matrix[1]]
             nextprocesing_matrix = torch.tensor([nextprocesing_matrix],device=device,dtype = torch.float32)
             if terminated == False :
                 nextinfo = torch.tensor([[map.second_snake.direction/4,(map.apple[0]-map.second_snake.segments_pos[0][0])/(deafoult_size-1),(map.apple[1]-map.second_snake.segments_pos[0][1])/(deafoult_size-1)]],device=device,dtype = torch.float32)

@@ -151,7 +151,7 @@ class DQN_Agent:
         self. network_sync_counter = 0
         self.network_sync_freq = 10
         
-        self.expirience_replay = Memory(10000)
+        self.expirience_replay = Memory(20000)
         
         # Initialize discount 
         self.gamma = gamma
@@ -278,12 +278,12 @@ class DQN_Agent:
         plt.plot(iterations, score_log, label = "Score", color = 'tab:blue')
         #calculate average
         average = []
-        for i in range(24,len(score_log)):
+        for i in range(49,len(score_log)):
             recent_score_sum = 0
-            for j in range(i-24,i+1) :
+            for j in range(i-49,i+1) :
                 recent_score_sum += score_log[j]
-            average.append(recent_score_sum/25)
-        iterations = range(25, len(epsilon_log)+1, 1)
+            average.append(recent_score_sum/50)
+        iterations = range(50, len(epsilon_log)+1, 1)
         plt.plot(iterations, average, label = "Score Average",color = 'tab:orange')
         plt.ylabel('Return/Randomization factor')
         plt.xlabel('Iterations')
@@ -294,21 +294,21 @@ class DQN_Agent:
         seconds = range(1, len(ram)+1, 1)
         plt.plot(seconds,gpu,label="Gpu", color = 'green')
         average = []
-        for i in range(19,len(gpu)):
+        for i in range(24,len(gpu)):
             recent_gpu_sum = 0
-            for j in range(i-19,i+1) :
+            for j in range(i-24,i+1) :
                 recent_gpu_sum += gpu[j]
-            average.append(recent_gpu_sum/20)
-        avg_seconds = range(20,len(ram)+1)
+            average.append(recent_gpu_sum/25)
+        avg_seconds = range(25,len(ram)+1)
         plt.plot(avg_seconds,average,label = "GPU average",color = 'tab:orange')
         plt.plot(seconds,cpu,label="Cpu", color = 'tab:blue')
         plt.plot(seconds,ram,label="Ram", color = 'tab:pink')
         plt.ylabel('percent')
         plt.xlabel('minutes')
         #minute labels
-        (len(ram)/12+1)
-        labels = [i*round((len(ram)/12+1)/5) for i in range(6)]
-        x = [i*12 for i in labels]
+        (len(ram)/6+1)
+        labels = [i*round((len(ram)/6+1)/5) for i in range(6)]
+        x = [i*6 for i in labels]
         plt.xticks(x, labels)
         plt.legend()
         plt.savefig(filename+" Pc Performance.png")
