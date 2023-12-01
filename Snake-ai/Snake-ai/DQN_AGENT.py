@@ -151,7 +151,7 @@ class DQN_Agent:
         self. network_sync_counter = 0
         self.network_sync_freq = 10
         
-        self.expirience_replay = Memory(20000)
+        self.expirience_replay = Memory(50000)
         
         # Initialize discount 
         self.gamma = gamma
@@ -181,8 +181,8 @@ class DQN_Agent:
                     name = name + '.' + gen[i]
                 directory = directory + '/' + name
             model_load = directory+'/' + name
-            self.q_network = torch.load(model_load)
-            self.target_network = torch.load(model_load)
+            self.q_network = torch.load(model_load).to(device)
+            self.target_network = torch.load(model_load).to(device)
 
         
         self._optimizer = optim.Adam(self.q_network.parameters(),lr = learning_rate)
@@ -347,11 +347,6 @@ class DQN_Agent:
         plt.plot(seconds,ram,label="Ram", color = 'tab:pink')
         plt.ylabel('percent')
         plt.xlabel('minutes')
-        #minute labels
-        (len(ram)/6+1)
-        labels = [i*round((len(ram)/6+1)/5) for i in range(6)]
-        x = [i*6 for i in labels]
-        plt.xticks(x, labels)
         plt.legend()
         plt.savefig(filename+" Pc Performance.png")
         plt.clf()

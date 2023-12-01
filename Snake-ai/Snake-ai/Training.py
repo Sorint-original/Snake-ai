@@ -17,7 +17,7 @@ import threading
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
 process = psutil.Process()
-total_memory = (((psutil.virtual_memory().total)/(1024**3))/100)
+total_memory_percent = (((psutil.virtual_memory().total)/(1024**3))/100)
 
 ram = []
 gpu = []
@@ -27,12 +27,12 @@ test = True
 def get_process_data() :  
     global test,ram,cpu,gpu
     while test == True :
-        ram.append((process.memory_info().rss/(1024**3))/total_memory)
+        ram.append((process.memory_info().rss/(1024**3))/total_memory_percent)
         GPUs = GPUtil.getGPUs()
         load = GPUs[0].load
         gpu.append(load*100)
         cpu.append(process.cpu_percent()/psutil.cpu_count())
-        time.sleep(10)
+        time.sleep(60)
         
     
 
@@ -75,6 +75,8 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
     
     max_ep_time = 225
 
+    max_apple_distance = round(math.sqrt(2*((deafoult_size-1)**2)))
+
     eval_thread = threading.Thread(target = get_process_data)
     eval_thread.start()
 
@@ -86,8 +88,6 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
         
 
         procesing_matrix = deepcopy([map.tile_map[0]])
-        #procesing_matrix[0] =  [ [x for x in y] for y in procesing_matrix[0]]
-        #procesing_matrix[1] = [ [x for x in y] for y in procesing_matrix[1]]
         procesing_matrix = torch.tensor([procesing_matrix],device=device,dtype = torch.float32)
         info = torch.tensor([[map.second_snake.direction/4,(map.apple[0]-map.second_snake.segments_pos[0][0])/(deafoult_size-1),(map.apple[1]-map.second_snake.segments_pos[0][1])/(deafoult_size-1)]],device=device,dtype = torch.float32)
         time = 0
@@ -118,21 +118,21 @@ def training_ai(WIN,WIDTH,HEIGHT,FPS,SCENARIO) :
                     episode_timer = max_ep_time
                     apple_count += 1
                 else :
-                    reward = 1/math.sqrt((map.apple[0]-map.second_snake.segments_pos[0][0])**2 + (map.apple[1]-map.second_snake.segments_pos[0][1])**2)
+                    apple_distance = math.sqrt((map.apple[0]-map.second_snake.segments_pos[0][0])**2 + (map.apple[1]-map.second_snake.segments_pos[0][1])**2)
+                    #reward = 1/apple_distance
+                    reward = 1/(apple_distance-max_apple_distance)
             else :
                 terminated = True
-                reward = -15
+                reward = -10
             #getting new state
             nextprocesing_matrix = deepcopy([map.tile_map[0]])
-            #nextprocesing_matrix[0] = [ [x for x in y] for y in nextprocesing_matrix[0]]
-            #nextprocesing_matrix[1] = [ [x for x in y] for y in nextprocesing_matrix[1]]
             nextprocesing_matrix = torch.tensor([nextprocesing_matrix],device=device,dtype = torch.float32)
             if terminated == False :
                 nextinfo = torch.tensor([[map.second_snake.direction/4,(map.apple[0]-map.second_snake.segments_pos[0][0])/(deafoult_size-1),(map.apple[1]-map.second_snake.segments_pos[0][1])/(deafoult_size-1)]],device=device,dtype = torch.float32)
             else:
                 nextinfo = None
             
-            reward = torch.tensor([reward])
+            reward = torch.tensor([reward],device=device)
             agent.store(procesing_matrix,info,action,reward,nextprocesing_matrix,nextinfo,terminated)
             procesing_matrix = nextprocesing_matrix
             info = nextinfo
